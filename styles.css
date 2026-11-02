@@ -26,6 +26,59 @@
   --button-width: 286px;
   --button-height: 89px;
   --button-border-width: 4px;
+
+  /* ---- עמוד המשחק (פריים "start") ---- */
+
+  --font-size-countdown: 191px;  /* בפיגמה 188px, הוגדל ב-3 לבקשתי */
+  --timer-left-game: 121px;    /* בעמוד המשחק השעון מתחיל 121px מהשמאל */
+  --timer-width-game: 491px;
+
+  /* ---- הטאבים (פריימים "pink", "blue", "yellow", "orange", "green") ---- */
+
+  /* צבעי הטאבים */
+  --color-tab-pink: #f5a4b9;
+  --color-tab-blue: #87e8fb;
+  --color-tab-yellow: #ece24d;
+  --color-tab-orange: #feb23a;
+  --color-tab-green: #aaea01;
+
+  --tab-border-width: 3px;
+  --font-size-tab: 52px;
+
+  /* כפתור ה-x בפינה (בפיגמה: 6.6px משמאל, 1.5px מלמעלה, פחות 3px של המסגרת) */
+  --tab-close-left: 4px;
+  --tab-close-top: -1.5px;
+  --tab-close-width: 37px;
+  --tab-close-height: 53px;
+
+  /* גודל כל טאב */
+  --tab-pink-width: 234px;
+  --tab-pink-height: 234px;
+  --tab-blue-width: 234px;
+  --tab-blue-height: 318px;
+  --tab-yellow-width: 321px;
+  --tab-yellow-height: 318px;
+  --tab-orange-width: 303px;
+  --tab-orange-height: 318px;
+  --tab-green-width: 344px;
+  --tab-green-height: 219px;
+
+  /* מיקום הטקסט בתוך כל טאב (מרחק מהצדדים ומהתחתית, כמו בפיגמה) */
+  --tab-pink-text-left: 13.56%;
+  --tab-pink-text-right: 13.56%;
+  --tab-pink-text-bottom: 22.85%;
+  --tab-blue-text-left: 13.56%;
+  --tab-blue-text-right: 13.56%;
+  --tab-blue-text-bottom: 19.72%;
+  --tab-yellow-text-left: 22.25%;
+  --tab-yellow-text-right: 22.48%;
+  --tab-yellow-text-bottom: 27.84%;
+  --tab-orange-text-left: 21.9%;
+  --tab-orange-text-right: 21.9%;
+  --tab-orange-text-bottom: 42.46%;
+  --tab-green-text-left: 7.28%;
+  --tab-green-text-right: 8.57%;
+  --tab-green-text-bottom: 21.89%;
 }
 
 /* ===================================================
@@ -90,4 +143,152 @@ body {
   font-size: var(--font-size-button);
   font-weight: var(--font-weight-extrabold);
   cursor: pointer;
+}
+
+/* ===================================================
+   עמוד המשחק (game.html)
+   =================================================== */
+
+/* בעמוד המשחק השעון והכפתור בפונט רגיל ולא מודגש */
+.regular-weight {
+  font-weight: var(--font-weight-regular);
+}
+
+/* בעמוד המשחק השעון זז ימינה ומיושר לשמאל */
+.timer-game {
+  left: var(--timer-left-game);
+  width: var(--timer-width-game);
+  text-align: left;
+}
+
+/* המספר הגדול שסופר לאחור, באמצע למעלה */
+.countdown {
+  position: absolute;
+  top: var(--timer-top);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--font-size-countdown);
+  font-weight: var(--font-weight-extrabold);
+  line-height: normal;
+  z-index: 1;            /* תמיד מעל הטאבים */
+  pointer-events: none;  /* אפשר ללחוץ "דרכו" על x של טאב שמתחתיו */
+}
+
+/* טאב: מלבן צבעוני עם מסגרת שחורה, שקופץ במקום אקראי במסך */
+.tab {
+  position: absolute;
+  border: var(--tab-border-width) solid var(--color-text);
+}
+
+/* כפתור ה-x לסגירת הטאב */
+.tab-close {
+  position: absolute;
+  left: var(--tab-close-left);
+  top: var(--tab-close-top);
+  width: var(--tab-close-width);
+  height: var(--tab-close-height);
+  display: flex;
+  align-items: flex-end;      /* ה-x יושב בתחתית האזור שלו, כמו בפיגמה */
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: var(--font-size-tab);
+  font-weight: var(--font-weight-regular);
+  line-height: normal;
+  cursor: pointer;
+}
+
+/* הטקסט בתוך הטאב, צמוד לתחתית האזור שלו */
+.tab-text {
+  position: absolute;
+  text-align: center;
+  font-size: var(--font-size-tab);
+  font-weight: var(--font-weight-regular);
+  line-height: normal;
+}
+
+/* טאב pink */
+.tab-pink {
+  width: var(--tab-pink-width);
+  height: var(--tab-pink-height);
+  background-color: var(--color-tab-pink);
+}
+.tab-pink .tab-text {
+  left: var(--tab-pink-text-left);
+  right: var(--tab-pink-text-right);
+  bottom: var(--tab-pink-text-bottom);
+}
+
+/* טאב blue */
+.tab-blue {
+  width: var(--tab-blue-width);
+  height: var(--tab-blue-height);
+  background-color: var(--color-tab-blue);
+}
+.tab-blue .tab-text {
+  left: var(--tab-blue-text-left);
+  right: var(--tab-blue-text-right);
+  bottom: var(--tab-blue-text-bottom);
+}
+
+/* טאב yellow */
+.tab-yellow {
+  width: var(--tab-yellow-width);
+  height: var(--tab-yellow-height);
+  background-color: var(--color-tab-yellow);
+}
+.tab-yellow .tab-text {
+  left: var(--tab-yellow-text-left);
+  right: var(--tab-yellow-text-right);
+  bottom: var(--tab-yellow-text-bottom);
+}
+
+/* טאב orange */
+.tab-orange {
+  width: var(--tab-orange-width);
+  height: var(--tab-orange-height);
+  background-color: var(--color-tab-orange);
+}
+.tab-orange .tab-text {
+  left: var(--tab-orange-text-left);
+  right: var(--tab-orange-text-right);
+  bottom: var(--tab-orange-text-bottom);
+}
+
+/* טאב green */
+.tab-green {
+  width: var(--tab-green-width);
+  height: var(--tab-green-height);
+  background-color: var(--color-tab-green);
+}
+.tab-green .tab-text {
+  left: var(--tab-green-text-left);
+  right: var(--tab-green-text-right);
+  bottom: var(--tab-green-text-bottom);
+}
+
+/* ===================================================
+   סוף המשחק: הטאבים נמסים
+   =================================================== */
+
+/* הטאב נמתח למטה ונופל מהמסך (הזמנים נקבעים ב-JavaScript) */
+.tab.melting {
+  transform-origin: top center;
+  animation-name: melt;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+@keyframes melt {
+  0% {
+    transform: translateY(0) scaleY(1);
+  }
+  40% {
+    transform: translateY(5vh) scaleY(1.4);
+  }
+  100% {
+    transform: translateY(110vh) scaleY(2.5);
+  }
 }

@@ -14,14 +14,42 @@
 </head>
 <body>
 
-  <!-- השעון (בשלב הבא הוא יספור לאחור) -->
-  <p class="timer">23:59:50</p>
+  <!-- השעון: מתחיל ב-23:59:45 ומתקדם כמו שעון אמיתי -->
+  <p class="timer">23:59:45</p>
 
   <!-- המשפט במרכז -->
-  <h1 class="message">form<br>complete!</h1>
+  <h1 class="message">paper<br>complete!</h1>
 
-  <!-- הכפתור (בשלב הבא: hover יפתח את הטאבים) -->
+  <!-- הכפתור: hover פותח את המשחק -->
   <button class="submit-button" type="button">SUBMIT</button>
+
+  <script>
+    // הופך מספר שניות מאז חצות לטקסט בצורה 23:59:45
+    function formatTime(totalSeconds) {
+      totalSeconds = totalSeconds % (24 * 60 * 60);  // אחרי 23:59:59 חוזרים ל-00:00:00
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return [hours, minutes, seconds]
+        .map(function (number) { return String(number).padStart(2, "0"); })
+        .join(":");
+    }
+
+    // השעון מתקדם בשנייה כל שנייה
+    const clock = document.querySelector(".timer");
+    let clockSeconds = 23 * 3600 + 59 * 60 + 45;  // 23:59:45
+
+    setInterval(function () {
+      clockSeconds = clockSeconds + 1;
+      clock.textContent = formatTime(clockSeconds);
+    }, 1000);
+
+    // כשהעכבר עובר מעל SUBMIT, עוברים לעמוד המשחק
+    const submitButton = document.querySelector(".submit-button");
+    submitButton.addEventListener("mouseenter", function () {
+      window.location.href = "game.html";
+    });
+  </script>
 
 </body>
 </html>

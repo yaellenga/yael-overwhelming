@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>overwhelming interaction</title>
+
+  <!-- הפונט Advent Pro מ-Google Fonts (כמו בפיגמה) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@400;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- הכפתור, השעון והמשפט -->
+  <button class="submit-button" type="button">SUBMIT</button>
+  <p class="timer timer-game regular-weight">23:59:50</p>
+  <h1 class="message">paper<br>complete!</h1>
+
+  <!-- המספר הגדול שסופר לאחור -->
+  <p class="countdown">10</p>
+
+  <script>
+    // ---------- הגדרות המשחק (אפשר לשנות את המספרים) ----------
+    const TABS_AT_START = 1;          // כמה טאבים קופצים מעל SUBMIT כשהמשחק מתחיל
+    const RANDOM_TAB_MIN_WAIT = 600;  // זמן מינימלי בין טאבים אקראיים (מילישניות)
+    const RANDOM_TAB_MAX_WAIT = 2000; // זמן מקסימלי בין טאבים אקראיים (מילישניות)
+    const TABS_AFTER_CLOSE_MIN = 1;   // כמה טאבים חדשים קופצים כשסוגרים טאב (מינימום)
+    const TABS_AFTER_CLOSE_MAX = 2;   // ...ומקסימום
+    const FILL_SPEED = 40;            // בסוף: כל כמה מילישניות קופץ טאב חדש עד שהמסך מתמלא
+    const PAUSE_BEFORE_MELT = 500;    // כמה זמן המסך נשאר מלא לפני שהטאבים נמסים
+    const MELT_MAX_DELAY = 800;       // טאבים מתחילים להימס בזמנים שונים, עד ההשהיה הזו
+    const MELT_MIN_DURATION = 1200;   // כמה זמן לוקח לטאב להימס (מינימום)
+    const MELT_MAX_DURATION = 2000;   // ...ומקסימום
+
+    let gameIsOver = false;           // הופך ל-true כשהספירה מגיעה ל-0
+    let popTimer;                     // הטיימר של הטאבים האקראיים (כדי שנוכל לעצור אותו)
+
+    // חמשת סוגי הטאבים מפיגמה: הצבע (שם המחלקה ב-CSS) והטקסט
+    const TAB_TYPES = [
+      { color: "pink",   text: "close me" },
+      { color: "blue",   text: "time’s running out" },
+      { color: "yellow", text: "not cutting it" },
+      { color: "orange", text: "HURRY" },
+      { color: "green",  text: "i’m just a distraction" }
+    ];
+
+    // מספר אקראי שלם בין min ל-max
+    function randomNumber(min, max) {
+      return Math.floor(min + Math.random() * (max - min + 1));
+    }
+
+    // יוצר טאב אקראי ומוסיף אותו לעמוד (בהתחלה במקום 0,0)
+    function createTab() {
+      const type = TAB_TYPES[randomNumber(0, TAB_TYPES.length - 1)];
+
+      const tab = document.createElement("div");
+      tab.className = "tab tab-" + type.color;
+      tab.innerHTML =
+        '<button class="tab-close" type="button">x</button>' +
+        '<p class="tab-text">' + type.text + "</p>";
+
+      // לחיצה על ה-x סוגרת את הטאב, ואז קופצים טאבים חדשים
+      tab.querySelector(".tab-close").addEventListener("click", function () {
+        if (gameIsOver) return;  // אחרי שהזמן נגמר אי אפשר לסגור טאבים
+        tab.remove();
+        keepSubmitCovered();     // אם SUBMIT נחשף, טאב חדש מכסה אותו מיד
+        const newTabsCount = randomNumber(TABS_AFTER_CLOSE_MIN, TABS_AFTER_CLOSE_MAX);
+        for (let i = 0; i < newTabsCount; i++) {
+          setTimeout(showTabAnywhere, randomNumber(200, 800));
+        }
+      });
+
+      document.body.appendChild(tab);  // טאב חדש תמיד מופיע מעל הקודמים
+      return tab;
+    }
+
+    // מציב את הטאב במיקום, אבל דואג שלא יצא מגבולות המסך
+    function placeTab(tab, left, top) {
+      const maxLeft = window.innerWidth - tab.offsetWidth;
+      const maxTop = window.innerHeight - tab.offsetHeight;
+      tab.style.left = Math.max(0, Math.min(left, maxLeft)) + "px";
+      tab.style.top = Math.max(0, Math.min(top, maxTop)) + "px";
+    }
+
+    // טאב במקום אקראי בכל המסך
+    function showTabAnywhere() {
+      const tab = createTab();
+      placeTab(
+        tab,
+        randomNumber(0, window.innerWidth - tab.offsetWidth),
+        randomNumber(0, window.innerHeight - tab.offsetHeight)
+      );
+    }
+
+    // טאב שמכסה את כפתור SUBMIT (קצת זז לכל כיוון)
+    function showTabOverSubmit() {
+      const button = document.querySelector(".submit-button").getBoundingClientRect();
+      const buttonCenterX = button.left + button.width / 2;
+      const buttonCenterY = button.top + button.height / 2;
+
+      const tab = createTab();
+      placeTab(
+        tab,
+        buttonCenterX - tab.offsetWidth / 2 + randomNumber(-80, 80),
+        buttonCenterY - tab.offsetHeight / 2 + randomNumber(-60, 60)
+      );
+    }
+
+    // דואג שתמיד יהיה טאב שמכסה לפחות חלק מכפתור SUBMIT
+    function keepSubmitCovered() {
+      const button = document.querySelector(".submit-button").getBoundingClientRect();
+      const tabs = document.querySelectorAll(".tab");
+
+      for (const tab of tabs) {
+        const tabBox = tab.getBoundingClientRect();
+        const overlaps =
+          tabBox.left < button.right && tabBox.right > button.left &&
+          tabBox.top < button.bottom && tabBox.bottom > button.top;
+        if (overlaps) return;  // יש טאב שמכסה, אין מה לעשות
+      }
+
+      showTabOverSubmit();  // אף טאב לא מכסה, אז מוסיפים אחד
+    }
+
+    // טאבים שקופצים לבד, בהפרשי זמן אקראיים
+    function keepPoppingTabs() {
+      showTabAnywhere();
+      popTimer = setTimeout(keepPoppingTabs, randomNumber(RANDOM_TAB_MIN_WAIT, RANDOM_TAB_MAX_WAIT));
+    }
+
+    // ---------- סוף המשחק ----------
+
+    // מחפש נקודה במסך שעוד לא מכוסה בטאב (בודק רשת של נקודות)
+    function findUncoveredPoint() {
+      const step = 25;
+      const uncoveredPoints = [];
+      for (let x = 1; x < window.innerWidth + step; x += step) {
+        for (let y = 1; y < window.innerHeight + step; y += step) {
+          const pointX = Math.min(x, window.innerWidth - 1);
+          const pointY = Math.min(y, window.innerHeight - 1);
+          const element = document.elementFromPoint(pointX, pointY);
+          if (!element || !element.closest(".tab")) {
+            uncoveredPoints.push({ x: pointX, y: pointY });
+          }
+        }
+      }
+      if (uncoveredPoints.length === 0) return null;  // הכול מכוסה
+      return uncoveredPoints[randomNumber(0, uncoveredPoints.length - 1)];
+    }
+
+    // ממלא את המסך בטאבים מהר, כל פעם במקום שעוד לא מכוסה
+    function fillScreen() {
+      const point = findUncoveredPoint();
+      if (point === null) {
+        setTimeout(meltTabs, PAUSE_BEFORE_MELT);
+        return;
+      }
+      const tab = createTab();
+      placeTab(
+        tab,
+        point.x - tab.offsetWidth / 2 + randomNumber(-60, 60),
+        point.y - tab.offsetHeight / 2 + randomNumber(-60, 60)
+      );
+      setTimeout(fillScreen, FILL_SPEED);
+    }
+
+    // כל הטאבים נמסים ונופלים, ואז חוזרים לעמוד הפתיחה
+    function meltTabs() {
+      let longestMelt = 0;
+      document.querySelectorAll(".tab").forEach(function (tab) {
+        const delay = randomNumber(0, MELT_MAX_DELAY);
+        const duration = randomNumber(MELT_MIN_DURATION, MELT_MAX_DURATION);
+        tab.style.animationDelay = delay + "ms";
+        tab.style.animationDuration = duration + "ms";
+        tab.classList.add("melting");
+        longestMelt = Math.max(longestMelt, delay + duration);
+      });
+      setTimeout(function () {
+        window.location.href = "index.html";
+      }, longestMelt);
+    }
+
+    function endGame() {
+      gameIsOver = true;
+      clearTimeout(popTimer);  // עוצרים את הטאבים האקראיים הרגילים
+      fillScreen();
+    }
+
+    // ---------- צליל הטיימר ----------
+    // הצליל נוצר בקוד (בלי קובץ שמע): ביפים של טיימר
+    const audio = new AudioContext();
+
+    // דפדפנים מרשים להשמיע צליל רק אחרי שהשחקן לחץ על משהו בעמוד
+    document.addEventListener("click", function () {
+      audio.resume();
+    });
+
+    // צליל אחד: גובה ההתחלה, גובה הסוף, צורת הגל, עוצמה ואורך (בשניות)
+    function playSound(startPitch, endPitch, waveType, volume, length) {
+      const now = audio.currentTime;
+      const sound = audio.createOscillator();
+      const soundVolume = audio.createGain();
+
+      sound.type = waveType;
+      sound.frequency.setValueAtTime(startPitch, now);
+      sound.frequency.exponentialRampToValueAtTime(endPitch, now + length);
+      soundVolume.gain.setValueAtTime(volume, now);
+      soundVolume.gain.setValueAtTime(volume, now + length - 0.03);
+      soundVolume.gain.linearRampToValueAtTime(0, now + length);  // נעצר בבת אחת בסוף
+
+      sound.connect(soundVolume);
+      soundVolume.connect(audio.destination);
+      sound.start(now);
+      sound.stop(now + length);
+    }
+
+    // הצליל שמתנגן כשהמספר מתחלף: "טיק" של שעון כל שנייה, ובאזר צורם ב-0
+    // (כמו "10 seconds timer with buzzer effect sound")
+    function playTimerSound(secondsLeft) {
+      if (secondsLeft === 0) {
+        // באזר: שני צלילים נמוכים וצורמים כמעט באותו גובה, ביחד
+        playSound(140, 140, "sawtooth", 0.3, 1.5);
+        playSound(147, 147, "sawtooth", 0.3, 1.5);
+        return;
+      }
+      // טיק-טק: צליל קצרצר, שגובהו מתחלף כל שנייה
+      const tickPitch = secondsLeft % 2 === 0 ? 1800 : 1400;
+      playSound(tickPitch, tickPitch, "square", 0.25, 0.04);
+    }
+
+    // הופך מספר שניות מאז חצות לטקסט בצורה 23:59:50
+    function formatTime(totalSeconds) {
+      totalSeconds = totalSeconds % (24 * 60 * 60);  // אחרי 23:59:59 חוזרים ל-00:00:00
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return [hours, minutes, seconds]
+        .map(function (number) { return String(number).padStart(2, "0"); })
+        .join(":");
+    }
+
+    // ספירה לאחור: המספר באמצע יורד ב-1 כל שנייה, מ-10 עד 0,
+    // והשעון משמאל מתקדם יחד איתו מ-23:59:50 עד חצות
+    const countdown = document.querySelector(".countdown");
+    const clock = document.querySelector(".timer");
+    const clockStart = 23 * 3600 + 59 * 60 + 50;  // 23:59:50
+    let secondsLeft = 10;
+
+    const countdownTimer = setInterval(function () {
+      secondsLeft = secondsLeft - 1;
+      countdown.textContent = secondsLeft;
+      clock.textContent = formatTime(clockStart + (10 - secondsLeft));
+      playTimerSound(secondsLeft);
+      if (secondsLeft === 0) {
+        clearInterval(countdownTimer);  // עוצרים ב-0
+        endGame();
+      }
+    }, 1000);
+
+    // ---------- תחילת המשחק ----------
+    for (let i = 0; i < TABS_AT_START; i++) {
+      showTabOverSubmit();
+    }
+    popTimer = setTimeout(keepPoppingTabs, randomNumber(RANDOM_TAB_MIN_WAIT, RANDOM_TAB_MAX_WAIT));
+
+    // לחיצה על המקש R מחזירה לעמוד הפתיחה (עובד גם כשהמקלדת בעברית)
+    document.addEventListener("keydown", function (event) {
+      if (event.code === "KeyR") {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+</body>
+</html>
