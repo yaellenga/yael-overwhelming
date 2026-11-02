@@ -1,0 +1,93 @@
+/* ===================================================
+   משתנים: כל הערכים מגיעים מפיגמה (פריים "Opening", 1512×982)
+   =================================================== */
+:root {
+  /* צבעים */
+  --color-background: #8cffdf;
+  --color-text: #000000;
+
+  /* פונטים */
+  --font-main: "Advent Pro", sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-extrabold: 800;
+
+  /* גדלי טקסט */
+  --font-size-timer: 103px;
+  --font-size-message: 71px;
+  --font-size-button: 49px;
+
+  /* ריווחים ומיקומים */
+  --timer-top: 82px;          /* המרחק של השעון מראש המסך */
+  --timer-width: 599px;       /* רוחב האזור שבו השעון ממורכז */
+  --message-top: 36%;         /* 354 מתוך 982 בגובה הפריים */
+  --button-top: 72.5%;        /* 712 מתוך 982 בגובה הפריים */
+
+  /* הכפתור */
+  --button-width: 286px;
+  --button-height: 89px;
+  --button-border-width: 4px;
+}
+
+/* ===================================================
+   בסיס: עמוד במסך אחד, בלי גלילה
+   =================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-main);
+}
+
+/* ===================================================
+   השעון בפינה השמאלית העליונה
+   =================================================== */
+.timer {
+  position: absolute;
+  top: var(--timer-top);
+  left: 0;
+  width: var(--timer-width);
+  text-align: center;
+  font-size: var(--font-size-timer);
+  font-weight: var(--font-weight-extrabold);
+}
+
+/* ===================================================
+   המשפט במרכז המסך
+   =================================================== */
+.message {
+  position: absolute;
+  top: var(--message-top);
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  font-size: var(--font-size-message);
+  font-weight: var(--font-weight-regular);
+  line-height: normal;
+}
+
+/* ===================================================
+   כפתור SUBMIT
+   =================================================== */
+.submit-button {
+  position: absolute;
+  top: var(--button-top);
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--button-width);
+  height: var(--button-height);
+  border: var(--button-border-width) solid var(--color-text);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-extrabold);
+  cursor: pointer;
+}
