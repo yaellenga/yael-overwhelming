@@ -42,6 +42,11 @@
     setInterval(function () {
       clockSeconds = clockSeconds + 1;
       clock.textContent = formatTime(clockSeconds);
+
+      // ב-00:00:10 המשחק מתחיל מחדש (השעון חוזר ל-23:59:45)
+      if (clock.textContent === "00:00:10") {
+        window.location.href = "index.html";
+      }
     }, 1000);
 
     // כשהעכבר עובר מעל SUBMIT, עוברים לעמוד המשחק

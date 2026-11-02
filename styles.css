@@ -18,7 +18,8 @@
 
   /* ריווחים ומיקומים */
   --timer-top: 82px;          /* המרחק של השעון מראש המסך */
-  --timer-width: 599px;       /* רוחב האזור שבו השעון ממורכז */
+  --timer-left: 135px;        /* השעון מיושר לשמאל, כדי שרק הספרה שמשתנה תזוז.
+                                 135px = איפה ש-23:59:50 מתחיל בפיגמה */
   --message-top: 36%;         /* 354 מתוך 982 בגובה הפריים */
   --button-top: 72.5%;        /* 712 מתוך 982 בגובה הפריים */
 
@@ -105,9 +106,8 @@ body {
 .timer {
   position: absolute;
   top: var(--timer-top);
-  left: 0;
-  width: var(--timer-width);
-  text-align: center;
+  left: var(--timer-left);
+  text-align: left;
   font-size: var(--font-size-timer);
   font-weight: var(--font-weight-extrabold);
 }
