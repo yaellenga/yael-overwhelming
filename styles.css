@@ -219,9 +219,9 @@ body {
 .task-clean        { --task-color: var(--clean-bubble); }
 .task-shower       { --task-color: var(--shower-bubble); }
 
-/* צבע הטקסט על הסליידר: שחור, ולבן על צבע כהה (school work, פריים 98:109) */
-.task              { --slider-text: var(--color-background); }
-.task-school-work  { --slider-text: var(--color-text); }
+/* צבע הטקסט על הסליידר: שחור על הצבעים הבהירים (ירוק, ורוד, צהוב בהיר, צהוב חרדל), לבן על כל השאר */
+.task              { --slider-text: var(--color-text); }
+.task-laundry, .task-grocery-shop, .task-workout, .task-shower { --slider-text: var(--color-background); }
 .task-other        { --task-color: var(--other-bubble); }
 
 /* ===================================================
@@ -252,7 +252,7 @@ body {
   position: absolute;
   border: var(--cube-border-width) solid var(--color-background);
   background-color: var(--cube-background);
-  color: var(--color-text);   /* הטקסט לבן בכל האריחים */
+  color: var(--cube-text, var(--color-text));   /* לבן, או שחור על צבע בהיר (ראו למטה) */
   cursor: grab;
   touch-action: none;   /* גרירה עובדת גם במסך מגע */
   user-select: none;
@@ -289,7 +289,7 @@ body {
   cursor: grabbing;
 }
 
-/* מדריך הצבעים (פריים 70:663): צבע הקובייה לכל קטגוריה (הטקסט תמיד לבן) */
+/* מדריך הצבעים (פריים 70:663): צבע האריח לכל קטגוריה */
 .cube-laundry      { --cube-background: var(--laundry-bubble); }
 .cube-grocery-shop { --cube-background: var(--grocery-bubble); }
 .cube-school-work  { --cube-background: var(--school-bubble); }
@@ -299,6 +299,9 @@ body {
 .cube-clean        { --cube-background: var(--clean-bubble); }
 .cube-shower       { --cube-background: var(--shower-bubble); }
 .cube-other        { --cube-background: var(--other-bubble); }
+
+/* טקסט שחור על הצבעים הבהירים: ירוק, ורוד, צהוב בהיר וצהוב חרדל. על השאר הוא לבן */
+.cube-laundry, .cube-grocery-shop, .cube-workout, .cube-shower { --cube-text: var(--color-background); }
 
 /* הסיכום תמיד מעל האריחים, כדי שהמספרים ייראו גם כשהמגדלים מגיעים אליהם */
 .tasks-label, .tasks-count, .time-label, .hours-count, .hours-word {
