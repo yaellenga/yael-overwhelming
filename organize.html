@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>overwhelming interaction</title>
+
+  <!-- הפונטים Advent Pro ו-Arimo מ-Google Fonts (כמו בפיגמה) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@700&family=Arimo:wght@400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="screen">
+
+  <!-- השעה הנוכחית (מתעדכנת לבד) -->
+  <p class="clock title-font">9:43</p>
+
+  <!-- ציר השעות שנשארו היום (נוצר ב-JavaScript למטה) -->
+  <ol class="timeline"></ol>
+
+  <!-- הקוביות של המשימות נוצרות ב-JavaScript למטה -->
+
+  <!-- הסיכום בצד ימין (המספרים מגיעים מהמסך הקודם) -->
+  <p class="tasks-label">tasks for <span class="today-word title-font">today</span>:</p>
+  <p class="tasks-count title-font">0</p>
+
+  <p class="time-label">estimated time:</p>
+  <p class="hours-count title-font">0</p>
+  <p class="hours-word title-font">hours</p>
+
+</div>
+
+  <!-- התאמה למסך והשעון (משותף לכל העמודים) -->
+  <script src="shared.js"></script>
+
+  <script>
+    // ---------- הסיכום מהמסך הקודם ----------
+    const tasksCountText = document.querySelector(".tasks-count");
+    const hoursCountText = document.querySelector(".hours-count");
+    let tasksCount = Number(sessionStorage.getItem("tasksCount") || 0);
+    let totalHours = Number(sessionStorage.getItem("totalHours") || 0);
+
+    // מציג את המספרים. מספר שגדל "נושם": גדל וקטן במשך שנייה
+    const TOO_MANY_TASKS = 25;  // מכאן מספר המשימות נצבע באדום
+
+    function showSummary() {
+      updateNumber(tasksCountText, tasksCount);
+      updateNumber(hoursCountText, totalHours);
+      tasksCountText.classList.toggle("too-many", tasksCount >= TOO_MANY_TASKS);
+    }
+
+    function updateNumber(element, newValue) {
+      const grew = newValue > Number(element.textContent);
+      element.textContent = newValue;
+      if (grew) {
+        element.classList.remove("breathe");
+        element.offsetWidth;               // מאפס את האנימציה כדי שתתחיל מחדש
+        element.classList.add("breathe");
+      }
+    }
+
+    showSummary();
+
+    // ---------- ציר השעות: רק השעות שנשארו היום ----------
+    // מתחיל בשעה העגולה הבאה ונגמר ב-00:00. למשל ב-20:58: 21:00, 22:00, 23:00, 00:00
+    const timeline = document.querySelector(".timeline");
+    let timelineStartHour;
+
+    function buildTimeline() {
+      const nextHour = new Date().getHours() + 1;
+      if (nextHour === timelineStartHour) return;  // השעה לא התחלפה, אין מה לעדכן
+      timelineStartHour = nextHour;
+
+      timeline.innerHTML = "";
+      for (let hour = nextHour; hour <= 24; hour++) {
+        const label = document.createElement("li");
+        label.textContent = hour === 24 ? "00:00" : hour + ":00";
+        timeline.appendChild(label);
+      }
+    }
+
+    buildTimeline();
+    setInterval(buildTimeline, 1000);  // כשהשעה מתחלפת, השעה הראשונה נעלמת
+
+    // ---------- הקוביות: ערימה בצורת הר בתחתית המסך ----------
+    // כל קובייה נופלת מאמצע המסך ונוחתת על הקוביות שכבר בערימה
+    const FRAME_WIDTH = 1512, FRAME_HEIGHT = 982;
+    const PILE_LEFT_EDGE = FRAME_WIDTH / 2;  // ההר רק בחצי הימני של המסך
+    const PILE_CENTER = (PILE_LEFT_EDGE + FRAME_WIDTH) / 2;  // מרכז ההר: אמצע החצי הימני
+    const PILE_SPREAD = 300;        // עד כמה רחוק מהמרכז קובייה יכולה ליפול
+    const MAX_SLOPE = 0.6;          // כמה תלול ההר יכול להיות (גובה לכל פיקסל רוחב). יותר = הר צר וגבוה
+    const DROP_FROM = 450;          // מאיזה גובה הקוביות נופלות (בערך אמצע המסך)
+    const FALL_TIME = 700;          // כמה זמן לוקחת נפילה (מילישניות). חייב להתאים ל-CSS
+    const MAX_TILT = 8;             // הטיה מקסימלית במעלות, כדי שהטקסט תמיד יהיה קריא
+    const PARENT_DROP_GAP = 200;    // בהתחלה: הפרש הזמן בין נפילה של קובייה לקובייה
+
+    const screen = document.querySelector(".screen");
+    const selectedTasks = JSON.parse(sessionStorage.getItem("selectedTasks") || "[]");
+    let topLayer = 1;  // קובייה חדשה או נגררת תמיד עולה מעל כולן
+
+    // מספר אקראי בין min ל-max
+    function randomBetween(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    // מיקום אקראי סביב מרכז ההר. ממוצע של כמה מספרים אקראיים נותן יותר קוביות באמצע,
+    // ולכן הערימה גבוהה באמצע ונמוכה בצדדים, כמו הר
+    function randomPileSpot() {
+      const average = (Math.random() + Math.random() + Math.random()) / 3;  // בין 0 ל-1, בדרך כלל קרוב ל-0.5
+      return PILE_CENTER + (average - 0.5) * 2 * PILE_SPREAD;
+    }
+
+    // מוצא איפה הקובייה תנחת אם תיפול במיקום left:
+    // על הרצפה, או על הקובייה הכי גבוהה מתחתיה בערימה
+    function findLandingTop(cube, left) {
+      let floor = FRAME_HEIGHT;
+      document.querySelectorAll(".task-cube.in-pile").forEach(function (other) {
+        if (other === cube) return;
+        const otherLeft = Number(other.dataset.left);
+        const otherTop = Number(other.dataset.top);
+        const overlap = Math.min(left + cube.offsetWidth, otherLeft + other.offsetWidth) - Math.max(left, otherLeft);
+        if (overlap > 0 && otherTop < floor) {
+          floor = otherTop;
+        }
+      });
+      return { top: floor - cube.offsetHeight };
+    }
+
+    // שומר שהקובייה בתוך אזור ההר
+    function keepInPile(cube, left) {
+      return Math.max(PILE_LEFT_EDGE, Math.min(left, FRAME_WIDTH - cube.offsetWidth));
+    }
+
+    // מפיל קובייה לערימה
+    function dropIntoPile(cube) {
+      let left = keepInPile(cube, randomPileSpot() - cube.offsetWidth / 2);
+      let landing = findLandingTop(cube, left);
+
+      // החלקה כמו חול: בודקים מקומות בצדדים (עד רוחב קובייה שלמה).
+      // אם יש מקום נמוך יותר ממה שהמדרון מרשה, הקובייה מתגלגלת לשם.
+      // ככה נוצר הר עם מדרון, ולא מגדל
+      const width = cube.offsetWidth;
+      for (let tries = 0; tries < 40; tries++) {
+        let bestLeft = null, bestTop = landing.top;
+        [-width, -width / 2, width / 2, width].forEach(function (distance) {
+          const spot = keepInPile(cube, left + distance);
+          const spotTop = findLandingTop(cube, spot).top;  // top גדול יותר = נמוך יותר במסך
+          const tooSteep = spotTop - landing.top > MAX_SLOPE * Math.abs(spot - left);
+          if (tooSteep && spotTop > bestTop) {
+            bestLeft = spot;
+            bestTop = spotTop;
+          }
+        });
+        if (bestLeft === null) break;  // יציב, נשארים
+        left = bestLeft;
+        landing = findLandingTop(cube, left);
+      }
+
+      // שומרים איפה היא תנחת, כדי שהקוביות הבאות יידעו לנחות עליה
+      cube.dataset.left = left;
+      cube.dataset.top = landing.top;
+      cube.classList.add("in-pile");
+
+      // הנפילה: מתחילים למעלה (אמצע המסך) ומחליקים למטה עם CSS transition
+      cube.style.left = left + "px";
+      cube.style.top = Math.min(DROP_FROM, landing.top - 120) + "px";
+      cube.style.setProperty("--tilt", randomBetween(-MAX_TILT, MAX_TILT) + "deg");
+      cube.offsetTop;                          // גורם לדפדפן "לצייר" את נקודת ההתחלה לפני שזזים
+      cube.classList.add("falling");
+      cube.style.top = landing.top + "px";
+      setTimeout(function () {
+        cube.classList.remove("falling");      // אחרי הנחיתה: גרירה בלי השהיה
+      }, FALL_TIME);
+    }
+
+    // יוצר קובייה: השם בתוכה, הצבעים לפי הקטגוריה (מדריך הצבעים), ומפיל אותה לערימה
+    function createCube(name, category) {
+      const cube = document.createElement("div");
+      cube.className = "task-cube cube-" + category;
+      cube.textContent = name;                    // שם המשימה בתוך הקובייה
+      cube.title = name;                          // השם המלא מופיע גם כשעוברים עם העכבר
+      topLayer = topLayer + 1;
+      cube.style.zIndex = topLayer;
+      screen.appendChild(cube);
+      makeDraggable(cube);
+      dropIntoPile(cube);
+    }
+
+    // המשימות מהמסך הקודם נופלות אחת אחרי השנייה.
+    // מחכים שהפונטים ייטענו, כי הם משנים את הגובה של הקוביות (ובלי זה יהיו רווחים בערימה)
+    document.fonts.ready.then(function () {
+      selectedTasks.forEach(function (task, index) {
+        setTimeout(function () {
+          createCube(task.name, task.category);
+        }, index * PARENT_DROP_GAP);
+      });
+    });
+
+    // ---------- תת-משימות ----------
+    // בכל פעם שתופסים קובייה כדי לסדר אותה (בפעם הראשונה שתופסים אותה),
+    // נופלות 3 תת-משימות, כל אחת ממשימה ראשית אחרת שנבחרה.
+    // כל תת-משימה מוסיפה 1 למספר המשימות ו-0.5 לשעות
+    const KID_TASK_HOURS = 0.5;
+    const KID_TASKS_PER_GRAB = 3;   // כמה תת-משימות נופלות בכל פעם שתופסים קובייה
+
+    const KID_TASKS = {
+      "laundry":      ["separate colors", "add detergent to the list", "hang laundry", "open hanging rack", "fold last weeks laundry",
+                       "check pockets", "move laundry to dryer", "hang delicates"],
+      "grocery-shop": ["make shopping list", "grab reusable bags", "meal plan for the week", "put groceries away", "find wallet"],
+      "school-work":  ["find references", "update Figma", "brainstorm", "do homework", "export final files",
+                       "read brief", "find inspiration", "moodboard", "sketch ideas"],
+      "pay-bills":    ["fight with bureaucracy", "get card info", "check balance", "save confirmation", "pay electricity"],
+      "workout":      ["change clothes", "go to gym", "renew membership", "charge Airpods", "fill water bottle", "pack gym bag"],
+      "cook":         ["prep box for tomorrow", "defrost chicken", "clean surface", "pack leftovers", "find recipe"],
+      "shower":       ["wash hair", "turn on water heater", "skin care routine", "shave", "floss"],
+      "clean":        ["take out garbage", "clean surface", "wash dishes", "sweep floor", "change bed sheets", "tidy room"]
+    };
+
+    // התת-משימות שעוד לא הופיעו, רק של המשימות שנבחרו
+    const kidTasksLeft = {};
+    selectedTasks.forEach(function (task) {
+      if (KID_TASKS[task.category]) {
+        kidTasksLeft[task.category] = KID_TASKS[task.category].slice();  // עותק של הרשימה
+      }
+    });
+
+    function randomItem(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function addKidTasks() {
+      // משימות ראשיות שעוד נשארו להן תת-משימות, בסדר אקראי
+      const parents = Object.keys(kidTasksLeft).filter(function (category) {
+        return kidTasksLeft[category].length > 0;
+      });
+      if (parents.length === 0) return;  // נגמרו התת-משימות, לא מתזמנים עוד נפילה
+      parents.sort(function () { return Math.random() - 0.5; });
+
+      // אם נשארו פחות משימות ראשיות עם תת-משימות, נופלות פחות
+      parents.slice(0, KID_TASKS_PER_GRAB).forEach(function (category) {
+        const name = randomItem(kidTasksLeft[category]);
+        kidTasksLeft[category].splice(kidTasksLeft[category].indexOf(name), 1);  // לא תופיע שוב
+
+        createCube(name, category);
+
+        tasksCount = tasksCount + 1;
+        totalHours = totalHours + KID_TASK_HOURS;
+      });
+      showSummary();
+    }
+
+    // ---------- גרירה ----------
+    function makeDraggable(cube) {
+      cube.addEventListener("pointerdown", function (event) {
+        // כל המסך מוקטן כדי להיכנס לחלון, אז ממירים את תזוזת העכבר לגודל של הפריים
+        const scale = Number(getComputedStyle(document.documentElement).getPropertyValue("--screen-scale")) || 1;
+        const startMouseX = event.clientX, startMouseY = event.clientY;
+        const startLeft = cube.offsetLeft, startTop = cube.offsetTop;
+
+        // בפעם הראשונה שתופסים קובייה כדי לסדר אותה, נופלות עוד תת-משימות
+        if (!cube.dataset.grabbed) {
+          cube.dataset.grabbed = "yes";
+          addKidTasks();
+        }
+
+        cube.setPointerCapture(event.pointerId);  // ממשיכים לגרור גם אם העכבר "בורח" מהקובייה
+        cube.classList.remove("in-pile", "falling");  // קובייה שהוצאה מהערימה כבר לא "רצפה" לאחרות
+        cube.classList.add("dragging");
+        topLayer = topLayer + 1;
+        cube.style.zIndex = topLayer;
+
+        function moveCube(moveEvent) {
+          let left = startLeft + (moveEvent.clientX - startMouseX) / scale;
+          let top = startTop + (moveEvent.clientY - startMouseY) / scale;
+          // לא נותנים לקובייה לצאת מהמסך
+          left = Math.max(0, Math.min(left, FRAME_WIDTH - cube.offsetWidth));
+          top = Math.max(0, Math.min(top, FRAME_HEIGHT - cube.offsetHeight));
+          cube.style.left = left + "px";
+          cube.style.top = top + "px";
+
+          // בחצי השמאלי של המסך (ליד השעות) הקובייה מתיישרת. בחצי הימני חוזרת ההטיה שלה
+          const cubeMiddle = left + cube.offsetWidth / 2;
+          cube.classList.toggle("straight", cubeMiddle < FRAME_WIDTH / 2);
+        }
+
+        function dropCube() {
+          cube.classList.remove("dragging");
+          cube.removeEventListener("pointermove", moveCube);
+          cube.removeEventListener("pointerup", dropCube);
+        }
+
+        cube.addEventListener("pointermove", moveCube);
+        cube.addEventListener("pointerup", dropCube);
+      });
+    }
+  </script>
+
+</body>
+</html>

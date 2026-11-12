@@ -1,85 +1,97 @@
 /* ===================================================
-   משתנים: כל הערכים מגיעים מפיגמה (פריים "Opening", 1512×982)
+   משתנים: כל הערכים מגיעים מפיגמה (פריים "orginozer clusters", 1512×982)
    =================================================== */
 :root {
+  /* גודל הפריים בפיגמה. כל העמוד מוקטן או מוגדל כדי להיכנס למסך */
+  --frame-width: 1512px;
+  --frame-height: 982px;
+
   /* צבעים */
-  --color-background: #8cffdf;
-  --color-text: #000000;
+  --color-background: #000000;
+  --color-text: #ffffff;
+  --color-orange: #ff9804;    /* הכפתור LETS GET ORGANIZED */
+  --color-alert: #a80808;     /* אדום: מספר המשימות כשיש יותר מדי */
+
+  /* הצבע של כל משימה (מדריך הצבעים, פריים 70:663). השמות כמו המשתנים בפיגמה.
+     מסך ראשון: צבע המשימה בריחוף ובלחיצה. מסך שני: צבע הקובייה */
+  --laundry-bubble: #ffbce7;
+  --grocery-bubble: #50cc35;
+  --school-bubble: #4f1d38;
+  --bills-bubble: #f03003;
+  --workout-bubble: #ffb902;
+  --cook-bubble: #766049;
+  --clean-bubble: #02b0ef;
+  --shower-bubble: #bcaea6;
+  --other-bubble: #3a68fd;
 
   /* פונטים */
-  --font-main: "Advent Pro", sans-serif;
+  --font-title: "Advent Pro", sans-serif;
+  --font-body: "Arimo", sans-serif;
   --font-weight-regular: 400;
-  --font-weight-extrabold: 800;
+  --font-weight-bold: 700;
 
   /* גדלי טקסט */
-  --font-size-timer: 103px;
-  --font-size-message: 71px;
-  --font-size-button: 49px;
+  --font-size-text: 40px;
+  --font-size-clock: 60px;
+  --font-size-title: 100px;
+  --font-size-tasks-count: 200px;
 
-  /* ריווחים ומיקומים */
-  --timer-top: 82px;          /* המרחק של השעון מראש המסך */
-  --timer-left: 135px;        /* השעון מיושר לשמאל, כדי שרק הספרה שמשתנה תזוז.
-                                 135px = איפה ש-23:59:50 מתחיל בפיגמה */
-  --message-top: 36%;         /* 354 מתוך 982 בגובה הפריים */
-  --button-top: 72.5%;        /* 712 מתוך 982 בגובה הפריים */
+  /* העמודה השמאלית: כותרת, רשימה וכפתור */
+  --left-column: 143px;
+  --title-top: 55px;
+  --list-left: 151px;
+  --list-top: 186px;
+  --list-item-height: 46px;
+  --list-gap: 10px;            /* רווח בין משימות (56px בין שורה לשורה) */
+  --list-other-extra-gap: 6px; /* "other:" קצת יותר רחוק מהשאר */
+  --other-input-gap: 12px;     /* רווח בין "other:" לשדה ההקלדה */
+  --other-input-width: 400px;
 
   /* הכפתור */
-  --button-width: 286px;
-  --button-height: 89px;
+  --button-top: 824px;
+  --button-width: 360px;
+  --button-height: 67px;
   --button-border-width: 4px;
+  --button-padding-left: 14px;
 
-  /* ---- עמוד המשחק (פריים "start") ---- */
+  /* השעון בפינה הימנית העליונה */
+  --clock-left: calc(87.5% + 42px);
+  --clock-top: 29px;
 
-  --font-size-countdown: 191px;  /* בפיגמה 188px, הוגדל ב-3 לבקשתי */
-  --timer-left-game: 121px;    /* בעמוד המשחק השעון מתחיל 121px מהשמאל */
-  --timer-width-game: 491px;
+  /* הסיכום בצד ימין למטה */
+  /* הסיכום בצד ימין למעלה, מתחת לשעון (פריים 59:458, זהה בשני המסכים) */
+  --tasks-label-left: calc(75% + 65px);
+  --tasks-label-top: 116px;
+  --tasks-count-center: calc(81.25% + 108.5px);
+  --tasks-count-top: 145px;
+  --time-label-left: calc(75% + 65px);
+  --time-label-top: 389px;
+  --hours-count-center: calc(81.25% + 109px);
+  --hours-count-top: 440px;
+  --hours-word-left: calc(81.25% - 1.5px);
+  --hours-word-top: 513px;
 
-  /* ---- הטאבים (פריימים "pink", "blue", "yellow", "orange", "green") ---- */
+  /* ---- המסך השני (organize.html, פריים 58:357) ---- */
 
-  /* צבעי הטאבים */
-  --color-tab-pink: #f5a4b9;
-  --color-tab-blue: #87e8fb;
-  --color-tab-yellow: #ece24d;
-  --color-tab-orange: #feb23a;
-  --color-tab-green: #aaea01;
+  /* ציר השעות: רשימה לאורך הצד השמאלי של המסך */
+  --font-size-small: 20px;
+  --timeline-left: 49px;
+  --timeline-top: 125px;
+  --timeline-height: 815px;    /* השעות מתפזרות בשווה מ-125px עד 940px מלמעלה */
 
-  --tab-border-width: 3px;
-  --font-size-tab: 52px;
+  /* קוביות המשימות (המיקום ההתחלתי נקבע ב-JavaScript) */
+  /* הכל פי 1.5 מהגודל הקודם (176×53, טקסט 20px) */
+  --cube-width: 264px;
+  --cube-height: 80px;
+  --cube-border-width: 1.5px;
+  --cube-padding: 12px 18px;   /* רווח מסביב לטקסט: 12px למעלה ולמטה, 18px בצדדים */
+  --cube-font-size: 30px;
+  --fall-time: 700ms;
+  --straighten-time: 200ms;
+  --breathe-time: 1s;          /* "נשימה" של מספר שגדל */
+  --breathe-size: 1.2;         /* עד כמה הוא מתנפח (1.2 = פי 1.2) */
+  --summary-layer: 100000;     /* הסיכום תמיד מעל כל הקוביות */    /* כמה מהר קובייה מתיישרת כשגוררים אותה למעלה */          /* זמן הנפילה לערימה (חייב להתאים ל-FALL_TIME ב-organize.html) */
 
-  /* כפתור ה-x בפינה (בפיגמה: 6.6px משמאל, 1.5px מלמעלה, פחות 3px של המסגרת) */
-  --tab-close-left: 4px;
-  --tab-close-top: -1.5px;
-  --tab-close-width: 37px;
-  --tab-close-height: 53px;
-
-  /* גודל כל טאב */
-  --tab-pink-width: 234px;
-  --tab-pink-height: 234px;
-  --tab-blue-width: 234px;
-  --tab-blue-height: 318px;
-  --tab-yellow-width: 321px;
-  --tab-yellow-height: 318px;
-  --tab-orange-width: 303px;
-  --tab-orange-height: 318px;
-  --tab-green-width: 344px;
-  --tab-green-height: 219px;
-
-  /* מיקום הטקסט בתוך כל טאב (מרחק מהצדדים ומהתחתית, כמו בפיגמה) */
-  --tab-pink-text-left: 13.56%;
-  --tab-pink-text-right: 13.56%;
-  --tab-pink-text-bottom: 22.85%;
-  --tab-blue-text-left: 13.56%;
-  --tab-blue-text-right: 13.56%;
-  --tab-blue-text-bottom: 19.72%;
-  --tab-yellow-text-left: 22.25%;
-  --tab-yellow-text-right: 22.48%;
-  --tab-yellow-text-bottom: 27.84%;
-  --tab-orange-text-left: 21.9%;
-  --tab-orange-text-right: 21.9%;
-  --tab-orange-text-bottom: 42.46%;
-  --tab-green-text-left: 7.28%;
-  --tab-green-text-right: 8.57%;
-  --tab-green-text-bottom: 21.89%;
 }
 
 /* ===================================================
@@ -97,198 +109,268 @@ body {
   position: relative;
   background-color: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-main);
-}
-
-/* ===================================================
-   השעון בפינה השמאלית העליונה
-   =================================================== */
-.timer {
-  position: absolute;
-  top: var(--timer-top);
-  left: var(--timer-left);
-  text-align: left;
-  font-size: var(--font-size-timer);
-  font-weight: var(--font-weight-extrabold);
-}
-
-/* ===================================================
-   המשפט במרכז המסך
-   =================================================== */
-.message {
-  position: absolute;
-  top: var(--message-top);
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  font-size: var(--font-size-message);
-  font-weight: var(--font-weight-regular);
+  font-family: var(--font-body);
+  font-size: var(--font-size-text);
   line-height: normal;
 }
 
-/* ===================================================
-   כפתור SUBMIT
-   =================================================== */
-.submit-button {
+/* "הפריים": כל התוכן בגודל של פיגמה, מוקטן כדי להיכנס למסך.
+   --screen-scale נקבע ב-JavaScript לפי גודל החלון */
+.screen {
   position: absolute;
-  top: var(--button-top);
   left: 50%;
-  transform: translateX(-50%);
-  width: var(--button-width);
-  height: var(--button-height);
-  border: var(--button-border-width) solid var(--color-text);
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-main);
-  font-size: var(--font-size-button);
-  font-weight: var(--font-weight-extrabold);
-  cursor: pointer;
+  top: 50%;
+  width: var(--frame-width);
+  height: var(--frame-height);
+  transform: translate(-50%, -50%) scale(var(--screen-scale, 1));
+}
+
+/* טקסטים בפונט Advent Pro מודגש */
+.title-font {
+  font-family: var(--font-title);
+  font-weight: var(--font-weight-bold);
 }
 
 /* ===================================================
-   עמוד המשחק (game.html)
+   השעון (השעה הנוכחית)
    =================================================== */
-
-/* בעמוד המשחק השעון והכפתור בפונט רגיל ולא מודגש */
-.regular-weight {
-  font-weight: var(--font-weight-regular);
-}
-
-/* בעמוד המשחק השעון זז ימינה ומיושר לשמאל */
-.timer-game {
-  left: var(--timer-left-game);
-  width: var(--timer-width-game);
-  text-align: left;
-}
-
-/* המספר הגדול שסופר לאחור, באמצע למעלה */
-.countdown {
+.clock {
   position: absolute;
-  top: var(--timer-top);
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: var(--font-size-countdown);
-  font-weight: var(--font-weight-extrabold);
-  line-height: normal;
-  z-index: 1;            /* תמיד מעל הטאבים */
-  pointer-events: none;  /* אפשר ללחוץ "דרכו" על x של טאב שמתחתיו */
+  left: var(--clock-left);
+  top: var(--clock-top);
+  font-size: var(--font-size-clock);
 }
 
-/* טאב: מלבן צבעוני עם מסגרת שחורה, שקופץ במקום אקראי במסך */
-.tab {
+/* ===================================================
+   הכותרת "today's to dos"
+   =================================================== */
+.page-title {
   position: absolute;
-  border: var(--tab-border-width) solid var(--color-text);
+  left: var(--left-column);
+  top: var(--title-top);
+  font-size: var(--font-size-title);
 }
 
-/* כפתור ה-x לסגירת הטאב */
-.tab-close {
+/* ===================================================
+   רשימת המשימות
+   =================================================== */
+.task-list {
   position: absolute;
-  left: var(--tab-close-left);
-  top: var(--tab-close-top);
-  width: var(--tab-close-width);
-  height: var(--tab-close-height);
+  left: var(--list-left);
+  top: var(--list-top);
+  list-style: none;
   display: flex;
-  align-items: flex-end;      /* ה-x יושב בתחתית האזור שלו, כמו בפיגמה */
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--list-gap);
+}
+
+.task-list .other-task {
+  margin-top: var(--list-other-extra-gap);
+  display: flex;
+  gap: var(--other-input-gap);
+}
+
+/* שדה ההקלדה ליד other: (בצבע של other:, בלי מסגרת) */
+.other-input {
+  width: var(--other-input-width);
+  height: var(--list-item-height);
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--other-bubble);
+  caret-color: var(--other-bubble);
+  font-family: var(--font-body);
+  font-size: var(--font-size-text);
+}
+
+/* משימה: 3 מצבים כמו בפיגמה */
+.task {
+  height: var(--list-item-height);
   border: none;
   background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-main);
-  font-size: var(--font-size-tab);
-  font-weight: var(--font-weight-regular);
+  color: var(--color-text);           /* מצב רגיל: לבן, עם "?" */
+  font-family: var(--font-body);
+  font-size: var(--font-size-text);
   line-height: normal;
+  text-align: left;
   cursor: pointer;
 }
 
-/* הטקסט בתוך הטאב, צמוד לתחתית האזור שלו */
-.tab-text {
+.task.hovered {
+  color: var(--task-color);           /* ריחוף: בצבע של המשימה, עם "?" */
+}
+
+.task.selected {
+  color: var(--task-color);           /* נלחץ: בצבע של המשימה, בלי "?" */
+}
+
+/* הצבע של כל משימה */
+.task-laundry      { --task-color: var(--laundry-bubble); }
+.task-grocery-shop { --task-color: var(--grocery-bubble); }
+.task-school-work  { --task-color: var(--school-bubble); }
+.task-pay-bills    { --task-color: var(--bills-bubble); }
+.task-workout      { --task-color: var(--workout-bubble); }
+.task-cook         { --task-color: var(--cook-bubble); }
+.task-clean        { --task-color: var(--clean-bubble); }
+.task-shower       { --task-color: var(--shower-bubble); }
+.task-other        { --task-color: var(--other-bubble); }
+
+/* ===================================================
+   הכפתור LETS GET ORGANIZED: 2 מצבים כמו בפיגמה
+   =================================================== */
+.organize-button {
   position: absolute;
-  text-align: center;
-  font-size: var(--font-size-tab);
-  font-weight: var(--font-weight-regular);
-  line-height: normal;
+  left: var(--left-column);
+  top: var(--button-top);
+  width: var(--button-width);
+  height: var(--button-height);
+  padding-left: var(--button-padding-left);
+  border: var(--button-border-width) solid var(--color-orange);
+  background: transparent;            /* מצב רגיל: מסגרת וטקסט כתומים */
+  color: var(--color-orange);
+  font-family: var(--font-title);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-text);
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
 }
 
-/* טאב pink */
-.tab-pink {
-  width: var(--tab-pink-width);
-  height: var(--tab-pink-height);
-  background-color: var(--color-tab-pink);
-}
-.tab-pink .tab-text {
-  left: var(--tab-pink-text-left);
-  right: var(--tab-pink-text-right);
-  bottom: var(--tab-pink-text-bottom);
-}
-
-/* טאב blue */
-.tab-blue {
-  width: var(--tab-blue-width);
-  height: var(--tab-blue-height);
-  background-color: var(--color-tab-blue);
-}
-.tab-blue .tab-text {
-  left: var(--tab-blue-text-left);
-  right: var(--tab-blue-text-right);
-  bottom: var(--tab-blue-text-bottom);
-}
-
-/* טאב yellow */
-.tab-yellow {
-  width: var(--tab-yellow-width);
-  height: var(--tab-yellow-height);
-  background-color: var(--color-tab-yellow);
-}
-.tab-yellow .tab-text {
-  left: var(--tab-yellow-text-left);
-  right: var(--tab-yellow-text-right);
-  bottom: var(--tab-yellow-text-bottom);
-}
-
-/* טאב orange */
-.tab-orange {
-  width: var(--tab-orange-width);
-  height: var(--tab-orange-height);
-  background-color: var(--color-tab-orange);
-}
-.tab-orange .tab-text {
-  left: var(--tab-orange-text-left);
-  right: var(--tab-orange-text-right);
-  bottom: var(--tab-orange-text-bottom);
-}
-
-/* טאב green */
-.tab-green {
-  width: var(--tab-green-width);
-  height: var(--tab-green-height);
-  background-color: var(--color-tab-green);
-}
-.tab-green .tab-text {
-  left: var(--tab-green-text-left);
-  right: var(--tab-green-text-right);
-  bottom: var(--tab-green-text-bottom);
+.organize-button:hover {
+  background: var(--color-orange);    /* ריחוף: רקע כתום וטקסט שחור */
+  color: var(--color-background);
 }
 
 /* ===================================================
-   סוף המשחק: הטאבים נמסים
+   הסיכום: כמה משימות להיום וכמה זמן
+   =================================================== */
+.tasks-label {
+  position: absolute;
+  left: var(--tasks-label-left);
+  top: var(--tasks-label-top);
+}
+
+.tasks-label .today-word {
+  text-transform: uppercase;
+}
+
+.tasks-count {
+  position: absolute;
+  left: var(--tasks-count-center);
+  top: var(--tasks-count-top);
+  transform: translateX(-50%);
+  font-size: var(--font-size-tasks-count);
+}
+
+.time-label {
+  position: absolute;
+  left: var(--time-label-left);
+  top: var(--time-label-top);
+}
+
+.hours-count {
+  position: absolute;
+  left: var(--hours-count-center);
+  top: var(--hours-count-top);
+  transform: translateX(-50%);
+  font-size: var(--font-size-title);
+}
+
+.hours-word {
+  position: absolute;
+  left: var(--hours-word-left);
+  top: var(--hours-word-top);
+  font-size: var(--font-size-title);
+}
+
+/* ===================================================
+   המסך השני (organize.html)
    =================================================== */
 
-/* הטאב נמתח למטה ונופל מהמסך (הזמנים נקבעים ב-JavaScript) */
-.tab.melting {
-  transform-origin: top center;
-  animation-name: melt;
-  animation-timing-function: ease-in;
-  animation-fill-mode: forwards;
+/* ציר השעות למעלה */
+/* השעות מפוזרות במרווחים שווים לאורך הצד השמאלי */
+.timeline {
+  position: absolute;
+  left: var(--timeline-left);
+  top: var(--timeline-top);
+  height: var(--timeline-height);
+  list-style: none;
+  display: flex;
+  flex-direction: column;            /* השעות אחת מתחת לשנייה */
+  justify-content: space-between;
+  font-size: var(--font-size-small);
 }
 
-@keyframes melt {
-  0% {
-    transform: translateY(0) scaleY(1);
-  }
-  40% {
-    transform: translateY(5vh) scaleY(1.4);
-  }
-  100% {
-    transform: translateY(110vh) scaleY(2.5);
-  }
+/* קובייה של משימה: צבע לפי המשימה, ואפשר לגרור אותה */
+.task-cube {
+  position: absolute;
+  width: var(--cube-width);
+  min-height: var(--cube-height);   /* שם ארוך: הקובייה מתארכת למטה */
+  border: var(--cube-border-width) solid var(--color-background);
+  background-color: var(--cube-background);
+  color: var(--color-text);   /* הטקסט לבן בכל הקוביות */
+  cursor: grab;
+  touch-action: none;   /* גרירה עובדת גם במסך מגע */
+  user-select: none;
+
+  /* שם המשימה ממורכז בתוך הקובייה. שם ארוך יורד לשורה נוספת */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--cube-padding);
+  font-size: var(--cube-font-size);
+
+  transform: rotate(var(--tilt, 0deg));   /* הטיה קטנה ושובבה, הטקסט תמיד קריא */
 }
+
+/* בחצי השמאלי של המסך (ליד השעות) הקובייה מתיישרת (בהדרגה) */
+.task-cube {
+  transition: transform var(--straighten-time);
+}
+
+.task-cube.straight {
+  transform: rotate(0deg);
+}
+
+/* נפילה לערימה: מאיץ בסוף, כמו כוח משיכה */
+.task-cube.falling {
+  transition: top var(--fall-time) cubic-bezier(0.5, 0, 1, 1), transform var(--straighten-time);
+}
+
+.task-cube.dragging {
+  cursor: grabbing;
+}
+
+/* מדריך הצבעים (פריים 70:663): צבע הקובייה לכל קטגוריה (הטקסט תמיד לבן) */
+.cube-laundry      { --cube-background: var(--laundry-bubble); }
+.cube-grocery-shop { --cube-background: var(--grocery-bubble); }
+.cube-school-work  { --cube-background: var(--school-bubble); }
+.cube-pay-bills    { --cube-background: var(--bills-bubble); }
+.cube-workout      { --cube-background: var(--workout-bubble); }
+.cube-cook         { --cube-background: var(--cook-bubble); }
+.cube-clean        { --cube-background: var(--clean-bubble); }
+.cube-shower       { --cube-background: var(--shower-bubble); }
+.cube-other        { --cube-background: var(--other-bubble); }
+
+/* בעמוד הזה הסיכום תמיד מעל הקוביות, כדי שהמספרים ייראו גם כשההר מגיע אליהם */
+.tasks-label, .tasks-count, .time-label, .hours-count, .hours-word {
+  z-index: var(--summary-layer);
+}
+
+/* יותר מדי משימות (25 ומעלה): המספר אדום */
+.tasks-count.too-many {
+  color: var(--color-alert);
+}
+
+/* "נשימה": מספר שגדל מתנפח וחוזר לגודלו במשך שנייה */
+.breathe {
+  animation: breathe var(--breathe-time) ease-in-out;
+}
+
+@keyframes breathe {
+  0%   { scale: 1; }
+  50%  { scale: var(--breathe-size); }
+  100% { scale: 1; }
+}
+

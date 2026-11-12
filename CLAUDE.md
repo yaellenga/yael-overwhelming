@@ -18,6 +18,7 @@ overwhelming interaction/
 ├── index.html      ← העמוד הראשי
 ├── (עמודים נוספים).html
 ├── styles.css      ← גיליון הסגנונות היחיד
+├── shared.js       ← JavaScript משותף לכל העמודים (שעון, התאמה למסך)
 └── images/         ← כל התמונות
 ```
 - index.html ושאר העמודים בתיקייה הראשית.

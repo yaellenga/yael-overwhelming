@@ -5,54 +5,173 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>overwhelming interaction</title>
 
-  <!-- הפונט Advent Pro מ-Google Fonts (כמו בפיגמה) -->
+  <!-- הפונטים Advent Pro ו-Arimo מ-Google Fonts (כמו בפיגמה) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@400;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@700&family=Arimo:wght@400&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="screen">
 
-  <!-- השעון: מתחיל ב-23:59:45 ומתקדם כמו שעון אמיתי -->
-  <p class="timer">23:59:45</p>
+  <!-- השעה הנוכחית (מתעדכנת לבד) -->
+  <p class="clock title-font">9:43</p>
 
-  <!-- המשפט במרכז -->
-  <h1 class="message">paper<br>complete!</h1>
+  <h1 class="page-title title-font">today’s to dos</h1>
 
-  <!-- הכפתור: hover פותח את המשחק -->
-  <button class="submit-button" type="button">SUBMIT</button>
+  <!-- רשימת המשימות: לחיצה מסמנת משימה להיום.
+       data-selected-text = הטקסט שמופיע כשהמשימה נבחרה (בלי "?")
+       data-hours = כמה שעות המשימה מוסיפה ל-estimated time -->
+  <ul class="task-list">
+    <li><button class="task task-laundry" type="button" data-selected-text="laundry" data-hours="0.5">laundry?</button></li>
+    <li><button class="task task-grocery-shop" type="button" data-selected-text="grocery shop" data-hours="1.5">grocery shop?</button></li>
+    <li><button class="task task-school-work" type="button" data-selected-text="school work" data-hours="1.5">school work?</button></li>
+    <li><button class="task task-pay-bills" type="button" data-selected-text="pay bills" data-hours="0.5">pay bills?</button></li>
+    <li><button class="task task-workout" type="button" data-selected-text="workout" data-hours="1.5">workout?</button></li>
+    <li><button class="task task-cook" type="button" data-selected-text="cook" data-hours="1">cook?</button></li>
+    <li><button class="task task-clean" type="button" data-selected-text="clean" data-hours="1">clean?</button></li>
+    <li><button class="task task-shower" type="button" data-selected-text="shower" data-hours="0.5">shower?</button></li>
+    <!-- other: לחיצה פותחת שדה להקלדת משימה חדשה -->
+    <li class="other-task">
+      <button class="task task-other" type="button">other:</button>
+      <input class="other-input" type="text" hidden>
+    </li>
+  </ul>
+
+  <button class="organize-button" type="button">lets get organized</button>
+
+  <!-- הסיכום בצד ימין -->
+  <p class="tasks-label">tasks for <span class="today-word title-font">today</span>:</p>
+  <p class="tasks-count title-font">0</p>
+
+  <p class="time-label">estimated time:</p>
+  <p class="hours-count title-font">0</p>
+  <p class="hours-word title-font">hours</p>
+
+</div>
+
+  <!-- התאמה למסך והשעון (משותף לכל העמודים) -->
+  <script src="shared.js"></script>
 
   <script>
-    // הופך מספר שניות מאז חצות לטקסט בצורה 23:59:45
-    function formatTime(totalSeconds) {
-      totalSeconds = totalSeconds % (24 * 60 * 60);  // אחרי 23:59:59 חוזרים ל-00:00:00
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      return [hours, minutes, seconds]
-        .map(function (number) { return String(number).padStart(2, "0"); })
-        .join(":");
+    // ---------- בחירת משימות ----------
+    const tasks = document.querySelectorAll(".task");
+    const tasksCount = document.querySelector(".tasks-count");
+    const hoursCount = document.querySelector(".hours-count");
+
+    // מעדכן את הסיכום: כמה משימות נבחרו וכמה שעות הן לוקחות
+    function updateSummary() {
+      // רק משימות אמיתיות (עם שעות). other: עצמו לא נספר
+      const selectedTasks = document.querySelectorAll(".task.selected[data-hours]");
+      let totalHours = 0;
+      selectedTasks.forEach(function (task) {
+        totalHours = totalHours + Number(task.dataset.hours);
+      });
+      tasksCount.textContent = selectedTasks.length;
+      hoursCount.textContent = totalHours;   // למשל 0, 1.5, 4
     }
 
-    // השעון מתקדם בשנייה כל שנייה
-    const clock = document.querySelector(".timer");
-    let clockSeconds = 23 * 3600 + 59 * 60 + 45;  // 23:59:45
+    // ריחוף: נצבע רק כל עוד העכבר על המילה
+    function addHover(button) {
+      button.addEventListener("mouseenter", function () {
+        button.classList.add("hovered");
+      });
+      button.addEventListener("mouseleave", function () {
+        button.classList.remove("hovered");   // העכבר יצא: חוזרים ללבן (אם לא נבחר)
+      });
+    }
 
-    setInterval(function () {
-      clockSeconds = clockSeconds + 1;
-      clock.textContent = formatTime(clockSeconds);
+    // מפעיל משימה: ריחוף, ולחיצה שבוחרת אותה או מבטלת
+    function setupTask(task) {
+      const normalText = task.textContent;               // למשל "laundry?"
+      const selectedText = task.dataset.selectedText;    // למשל "laundry"
 
-      // ב-00:00:10 המשחק מתחיל מחדש (השעון חוזר ל-23:59:45)
-      if (clock.textContent === "00:00:10") {
-        window.location.href = "index.html";
+      addHover(task);
+      task.addEventListener("click", function () {
+        task.classList.toggle("selected");
+        task.textContent = task.classList.contains("selected") ? selectedText : normalText;
+        updateSummary();
+      });
+    }
+
+    document.querySelectorAll(".task:not(.task-other)").forEach(setupTask);
+
+    // ---------- other: הקלדת משימה חדשה ----------
+    const NEW_TASK_HOURS = 0.5;   // כמה שעות מוסיפה משימה שהוקלדה (כמו other:)
+    const otherButton = document.querySelector(".task-other");
+    const otherInput = document.querySelector(".other-input");
+    const otherItem = document.querySelector(".other-task");
+
+    addHover(otherButton);
+
+    // פותח את שדה ההקלדה עם סמן מהבהב
+    otherButton.addEventListener("click", function () {
+      otherButton.classList.add("selected");   // other: נצבע כמו במצב לחוץ
+      otherInput.hidden = false;
+      otherInput.focus();
+    });
+
+    // סוגר את שדה ההקלדה ומחזיר את other: למצב רגיל
+    function closeOtherInput() {
+      otherInput.value = "";
+      otherInput.hidden = true;
+      otherButton.classList.remove("selected");
+    }
+
+    otherInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        const text = otherInput.value.trim();
+        closeOtherInput();
+        if (text !== "") addNewTask(text);
       }
-    }, 1000);
+      if (event.key === "Escape") closeOtherInput();
+    });
 
-    // כשהעכבר עובר מעל SUBMIT, עוברים לעמוד המשחק
-    const submitButton = document.querySelector(".submit-button");
-    submitButton.addEventListener("mouseenter", function () {
-      window.location.href = "game.html";
+    // אם לוחצים מחוץ לשדה בלי להקליד כלום, הוא נסגר
+    otherInput.addEventListener("blur", function () {
+      if (otherInput.value.trim() === "") closeOtherInput();
+    });
+
+    // מוסיף משימה חדשה מעל other:, בצבע של other:, וכבר מסומנת להיום
+    function addNewTask(text) {
+      const task = document.createElement("button");
+      task.className = "task task-other";
+      task.type = "button";
+      task.textContent = text + "?";
+      task.dataset.selectedText = text;
+      task.dataset.hours = NEW_TASK_HOURS;
+
+      const item = document.createElement("li");
+      item.appendChild(task);
+      otherItem.before(item);    // other: יורד שורה למטה
+
+      setupTask(task);
+      task.click();              // מסמנים אותה כמשימה להיום
+    }
+
+    // ---------- LETS GET ORGANIZED: עוברים למסך הבא ----------
+    // שומרים את הסיכום בדפדפן, כדי שהמסך הבא יציג את אותם מספרים
+    document.querySelector(".organize-button").addEventListener("click", function () {
+      sessionStorage.setItem("tasksCount", tasksCount.textContent);
+      sessionStorage.setItem("totalHours", hoursCount.textContent);
+
+      // גם רשימת המשימות שסומנו: השם והקטגוריה של כל אחת (בשביל הקוביות במסך הבא).
+      // הקטגוריה היא החלק אחרי "task-" בשם המחלקה, למשל task-grocery-shop → grocery-shop.
+      // משימות שהוקלדו דרך other: מקבלות את הקטגוריה other
+      const selectedTasks = [];
+      document.querySelectorAll(".task.selected[data-hours]").forEach(function (task) {
+        const categoryClass = Array.from(task.classList).find(function (name) {
+          return name.startsWith("task-");
+        });
+        selectedTasks.push({
+          name: task.dataset.selectedText,
+          category: categoryClass.replace("task-", "")
+        });
+      });
+      sessionStorage.setItem("selectedTasks", JSON.stringify(selectedTasks));
+
+      window.location.href = "organize.html";
     });
   </script>
 
