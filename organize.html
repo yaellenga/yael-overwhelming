@@ -15,25 +15,25 @@
 <body>
 <div class="screen">
 
-  <!-- השעה הנוכחית (מתעדכנת לבד) -->
-  <p class="clock title-font">9:43</p>
+  <!-- הכותרת (פריים 82:849) -->
+  <p class="day-title title-font">lets organize the day</p>
 
   <!-- ציר השעות שנשארו היום (נוצר ב-JavaScript למטה) -->
   <ol class="timeline"></ol>
 
-  <!-- הקוביות של המשימות נוצרות ב-JavaScript למטה -->
+  <!-- האריחים של המשימות נוצרים ב-JavaScript למטה -->
 
   <!-- הסיכום בצד ימין (המספרים מגיעים מהמסך הקודם) -->
-  <p class="tasks-label">tasks for <span class="today-word title-font">today</span>:</p>
+  <p class="tasks-label">tasks to do today:</p>
   <p class="tasks-count title-font">0</p>
 
   <p class="time-label">estimated time:</p>
   <p class="hours-count title-font">0</p>
-  <p class="hours-word title-font">hours</p>
+  <p class="hours-word">hours</p>
 
 </div>
 
-  <!-- התאמה למסך והשעון (משותף לכל העמודים) -->
+  <!-- התאמה למסך (משותף לכל העמודים) -->
   <script src="shared.js"></script>
 
   <script>
@@ -85,122 +85,169 @@
     buildTimeline();
     setInterval(buildTimeline, 1000);  // כשהשעה מתחלפת, השעה הראשונה נעלמת
 
-    // ---------- הקוביות: ערימה בצורת הר בתחתית המסך ----------
-    // כל קובייה נופלת מאמצע המסך ונוחתת על הקוביות שכבר בערימה
+    // ---------- האריחים: מגדל לכל קטגוריה (פריים 82:849) ----------
+    // בהתחלה: אריח לכל משימה שנבחרה, בתחתית המסך.
+    // אחר כך אריחים חדשים נופלים מלמעלה ונערמים על המגדל של הקטגוריה שלהם
     const FRAME_WIDTH = 1512, FRAME_HEIGHT = 982;
-    const PILE_LEFT_EDGE = FRAME_WIDTH / 2;  // ההר רק בחצי הימני של המסך
-    const PILE_CENTER = (PILE_LEFT_EDGE + FRAME_WIDTH) / 2;  // מרכז ההר: אמצע החצי הימני
-    const PILE_SPREAD = 300;        // עד כמה רחוק מהמרכז קובייה יכולה ליפול
-    const MAX_SLOPE = 0.6;          // כמה תלול ההר יכול להיות (גובה לכל פיקסל רוחב). יותר = הר צר וגבוה
-    const DROP_FROM = 450;          // מאיזה גובה הקוביות נופלות (בערך אמצע המסך)
-    const FALL_TIME = 700;          // כמה זמן לוקחת נפילה (מילישניות). חייב להתאים ל-CSS
-    const MAX_TILT = 8;             // הטיה מקסימלית במעלות, כדי שהטקסט תמיד יהיה קריא
-    const PARENT_DROP_GAP = 200;    // בהתחלה: הפרש הזמן בין נפילה של קובייה לקובייה
+    const TOWERS_LEFT = 423;        // המגדל הראשון מתחיל ב-25%+45px, כמו בעיצוב
+    const TOWER_WIDTH = 200;        // בערך הרוחב של מגדל בעיצוב. אריחים צרים יכולים לנחות קצת ימינה או שמאלה
+    const TILE_MIN_WIDTH = 45,  TILE_MAX_WIDTH = 185;    // הגדלים של האריחים בעיצוב
+    const TILE_MIN_HEIGHT = 53, TILE_MAX_HEIGHT = 236;
+    const TILE_PADDING = 8;         // הרווח בצדדים של הטקסט (כמו --cube-padding ב-CSS)
+    const FULL_FALL_TIME = 1600;    // כמה זמן לוקחת נפילה מלמעלה עד למטה (מילישניות). נפילה קצרה מהירה יותר
+    const LANDING_TIME = 250;       // משך ה"מכה" בנחיתה (כמו --landing-time ב-CSS)
+    const KID_DROP_GAP = 150;       // הפרש קטן בין אריחים שנופלים יחד
 
     const screen = document.querySelector(".screen");
     const selectedTasks = JSON.parse(sessionStorage.getItem("selectedTasks") || "[]");
-    let topLayer = 1;  // קובייה חדשה או נגררת תמיד עולה מעל כולן
+    let topLayer = 1;  // אריח חדש או נגרר תמיד עולה מעל כולם
 
     // מספר אקראי בין min ל-max
     function randomBetween(min, max) {
       return min + Math.random() * (max - min);
     }
 
-    // מיקום אקראי סביב מרכז ההר. ממוצע של כמה מספרים אקראיים נותן יותר קוביות באמצע,
-    // ולכן הערימה גבוהה באמצע ונמוכה בצדדים, כמו הר
-    function randomPileSpot() {
-      const average = (Math.random() + Math.random() + Math.random()) / 3;  // בין 0 ל-1, בדרך כלל קרוב ל-0.5
-      return PILE_CENTER + (average - 0.5) * 2 * PILE_SPREAD;
+    // מגדל לכל קטגוריה שנבחרה, לפי הסדר ברשימה, מפוזרים בשווה עד הקצה הימני
+    const categories = [];
+    selectedTasks.forEach(function (task) {
+      if (!categories.includes(task.category)) categories.push(task.category);
+    });
+    const columnWidth = (FRAME_WIDTH - TOWERS_LEFT) / Math.max(categories.length, 1);
+
+    function towerCenter(category) {
+      return TOWERS_LEFT + columnWidth * (categories.indexOf(category) + 0.5);
     }
 
-    // מוצא איפה הקובייה תנחת אם תיפול במיקום left:
-    // על הרצפה, או על הקובייה הכי גבוהה מתחתיה בערימה
-    function findLandingTop(cube, left) {
+    // ---- הגודל של אריח: אקראי, אבל טקסט ארוך מקבל אריח גדול שהוא נכנס בו ----
+    const measureCanvas = document.createElement("canvas").getContext("2d");
+
+    function longestWordWidth(tile) {
+      const style = getComputedStyle(tile);
+      measureCanvas.font = style.fontSize + " " + style.fontFamily;
+      let widest = 0;
+      tile.textContent.split(" ").forEach(function (word) {
+        widest = Math.max(widest, measureCanvas.measureText(word).width);
+      });
+      return widest;
+    }
+
+    function sizeTile(tile) {
+      // רוחב: לפחות כמו המילה הכי ארוכה, כדי שאף מילה לא תישבר
+      const minWidth = Math.max(TILE_MIN_WIDTH, Math.ceil(longestWordWidth(tile)) + TILE_PADDING * 2 + 2);
+      const width = randomBetween(minWidth, Math.max(minWidth, TILE_MAX_WIDTH));
+      tile.style.width = width + "px";
+
+      // גובה: לפחות כמו הטקסט (טקסט ארוך יורד שורות ומקבל אריח גבוה יותר).
+      // רוב האריחים יוצאים נמוכים, וחלק גבוהים, כמו בעיצוב
+      const minHeight = Math.max(TILE_MIN_HEIGHT, tile.offsetHeight);
+      const height = minHeight + Math.random() * Math.random() * Math.max(0, TILE_MAX_HEIGHT - minHeight);
+      tile.style.height = height + "px";
+    }
+
+    // ---- איפה אריח נוחת ----
+    // מחפש את האריח הכי גבוה שנמצא מתחתיו (מתחת ל-fromTop) ונוגע בו ברוחב. אם אין, נוחת על הרצפה
+    function findLandingTop(tile, left, fromTop) {
+      const bottom = fromTop + tile.offsetHeight;
       let floor = FRAME_HEIGHT;
       document.querySelectorAll(".task-cube.in-pile").forEach(function (other) {
-        if (other === cube) return;
+        if (other === tile) return;
         const otherLeft = Number(other.dataset.left);
         const otherTop = Number(other.dataset.top);
-        const overlap = Math.min(left + cube.offsetWidth, otherLeft + other.offsetWidth) - Math.max(left, otherLeft);
-        if (overlap > 0 && otherTop < floor) {
+        const overlap = Math.min(left + tile.offsetWidth, otherLeft + other.offsetWidth) - Math.max(left, otherLeft);
+        if (overlap > 0 && otherTop >= bottom - 1 && otherTop < floor) {
           floor = otherTop;
         }
       });
-      return { top: floor - cube.offsetHeight };
+      return floor - tile.offsetHeight;
     }
 
-    // שומר שהקובייה בתוך אזור ההר
-    function keepInPile(cube, left) {
-      return Math.max(PILE_LEFT_EDGE, Math.min(left, FRAME_WIDTH - cube.offsetWidth));
+    // ---- נפילה ----
+    // נופל עד toTop. כמו כוח משיכה: נפילה ארוכה לוקחת יותר זמן ומאיצה בסוף.
+    // בנחיתה יש "מכה" עדינה: האריח נמעך קצת וחוזר
+    function fallTo(tile, toTop) {
+      const distance = toTop - tile.offsetTop;
+      const fallTime = FULL_FALL_TIME * Math.sqrt(Math.max(distance, 0) / FRAME_HEIGHT);
+      tile.style.setProperty("--fall-time", fallTime + "ms");
+      tile.classList.add("falling");
+      tile.style.top = toTop + "px";
+
+      clearTimeout(tile.fallTimer);
+      tile.fallTimer = setTimeout(function () {
+        tile.classList.remove("falling");     // אחרי הנחיתה: גרירה בלי השהיה
+        tile.classList.remove("landing");
+        tile.offsetWidth;                     // מאפס את האנימציה כדי שתתחיל מחדש
+        tile.classList.add("landing");
+        setTimeout(function () { tile.classList.remove("landing"); }, LANDING_TIME);
+      }, fallTime);
     }
 
-    // מפיל קובייה לערימה
-    function dropIntoPile(cube) {
-      let left = keepInPile(cube, randomPileSpot() - cube.offsetWidth / 2);
-      let landing = findLandingTop(cube, left);
+    // מכניס אריח למגדל של הקטגוריה שלו.
+    // fromTop = איפה הוא מתחיל (למעלה מחוץ למסך). בלי fromTop הוא פשוט מונח במקום (בהתחלה)
+    function putInTower(tile, category, fromTop) {
+      // מקום אקראי קטן סביב מרכז המגדל, כדי שהמגדל לא יהיה ישר לגמרי
+      const wiggle = Math.max(0, (TOWER_WIDTH - tile.offsetWidth) / 2);
+      let left = towerCenter(category) - tile.offsetWidth / 2 + randomBetween(-wiggle, wiggle);
+      left = Math.max(TOWERS_LEFT, Math.min(left, FRAME_WIDTH - tile.offsetWidth));
 
-      // החלקה כמו חול: בודקים מקומות בצדדים (עד רוחב קובייה שלמה).
-      // אם יש מקום נמוך יותר ממה שהמדרון מרשה, הקובייה מתגלגלת לשם.
-      // ככה נוצר הר עם מדרון, ולא מגדל
-      const width = cube.offsetWidth;
-      for (let tries = 0; tries < 40; tries++) {
-        let bestLeft = null, bestTop = landing.top;
-        [-width, -width / 2, width / 2, width].forEach(function (distance) {
-          const spot = keepInPile(cube, left + distance);
-          const spotTop = findLandingTop(cube, spot).top;  // top גדול יותר = נמוך יותר במסך
-          const tooSteep = spotTop - landing.top > MAX_SLOPE * Math.abs(spot - left);
-          if (tooSteep && spotTop > bestTop) {
-            bestLeft = spot;
-            bestTop = spotTop;
-          }
-        });
-        if (bestLeft === null) break;  // יציב, נשארים
-        left = bestLeft;
-        landing = findLandingTop(cube, left);
+      const startTop = fromTop === undefined ? -FRAME_HEIGHT : fromTop;
+      const landingTop = findLandingTop(tile, left, startTop);
+
+      // שומרים איפה הוא ינחת, כדי שהאריחים הבאים יידעו לנחות עליו
+      tile.dataset.left = left;
+      tile.dataset.top = landingTop;
+      tile.classList.add("in-pile");
+      tile.style.left = left + "px";
+
+      if (fromTop === undefined) {
+        tile.style.top = landingTop + "px";   // בהתחלה: כבר למטה
+      } else {
+        tile.style.top = fromTop + "px";
+        tile.offsetTop;                       // גורם לדפדפן "לצייר" את נקודת ההתחלה לפני שזזים
+        fallTo(tile, landingTop);
       }
-
-      // שומרים איפה היא תנחת, כדי שהקוביות הבאות יידעו לנחות עליה
-      cube.dataset.left = left;
-      cube.dataset.top = landing.top;
-      cube.classList.add("in-pile");
-
-      // הנפילה: מתחילים למעלה (אמצע המסך) ומחליקים למטה עם CSS transition
-      cube.style.left = left + "px";
-      cube.style.top = Math.min(DROP_FROM, landing.top - 120) + "px";
-      cube.style.setProperty("--tilt", randomBetween(-MAX_TILT, MAX_TILT) + "deg");
-      cube.offsetTop;                          // גורם לדפדפן "לצייר" את נקודת ההתחלה לפני שזזים
-      cube.classList.add("falling");
-      cube.style.top = landing.top + "px";
-      setTimeout(function () {
-        cube.classList.remove("falling");      // אחרי הנחיתה: גרירה בלי השהיה
-      }, FALL_TIME);
     }
 
-    // יוצר קובייה: השם בתוכה, הצבעים לפי הקטגוריה (מדריך הצבעים), ומפיל אותה לערימה
-    function createCube(name, category) {
-      const cube = document.createElement("div");
-      cube.className = "task-cube cube-" + category;
-      cube.textContent = name;                    // שם המשימה בתוך הקובייה
-      cube.title = name;                          // השם המלא מופיע גם כשעוברים עם העכבר
+    // כשמוציאים אריח מהמגדל, מה שהיה מעליו נופל למטה (מהנמוך לגבוה)
+    function settleTowers() {
+      const tiles = Array.from(document.querySelectorAll(".task-cube.in-pile"));
+      tiles.sort(function (a, b) {
+        return (Number(b.dataset.top) + b.offsetHeight) - (Number(a.dataset.top) + a.offsetHeight);
+      });
+      tiles.forEach(function (tile) {
+        const top = Number(tile.dataset.top);
+        const landingTop = findLandingTop(tile, Number(tile.dataset.left), top);
+        if (landingTop > top + 0.5) {
+          tile.dataset.top = landingTop;
+          fallTo(tile, landingTop);
+        }
+      });
+    }
+
+    // יוצר אריח: השם בתוכו, הצבע לפי הקטגוריה (מדריך הצבעים), וגודל אקראי
+    function createTile(name, category) {
+      const tile = document.createElement("div");
+      tile.className = "task-cube cube-" + category;
+      tile.textContent = name;                    // שם המשימה בתוך האריח
+      tile.title = name;                          // השם המלא מופיע גם כשעוברים עם העכבר
       topLayer = topLayer + 1;
-      cube.style.zIndex = topLayer;
-      screen.appendChild(cube);
-      makeDraggable(cube);
-      dropIntoPile(cube);
+      tile.style.zIndex = topLayer;
+      screen.appendChild(tile);
+      sizeTile(tile);
+      makeDraggable(tile);
+      return tile;
     }
 
-    // המשימות מהמסך הקודם נופלות אחת אחרי השנייה.
-    // מחכים שהפונטים ייטענו, כי הם משנים את הגובה של הקוביות (ובלי זה יהיו רווחים בערימה)
+    // בהתחלה: המשימות מהמסך הקודם כבר למטה, כל אחת בבסיס המגדל שלה.
+    // מחכים שהפונטים ייטענו, כי הם משנים את המידות של הטקסט
     document.fonts.ready.then(function () {
-      selectedTasks.forEach(function (task, index) {
-        setTimeout(function () {
-          createCube(task.name, task.category);
-        }, index * PARENT_DROP_GAP);
+      selectedTasks.forEach(function (task) {
+        const tile = createTile(task.name, task.category);
+        putInTower(tile, task.category);
       });
     });
 
     // ---------- תת-משימות ----------
-    // בכל פעם שתופסים קובייה כדי לסדר אותה (בפעם הראשונה שתופסים אותה),
+    // בכל פעם שתופסים אריח כדי לסדר אותו (בפעם הראשונה שתופסים אותו),
     // נופלות 3 תת-משימות, כל אחת ממשימה ראשית אחרת שנבחרה.
     // כל תת-משימה מוסיפה 1 למספר המשימות ו-0.5 לשעות
     const KID_TASK_HOURS = 0.5;
@@ -240,11 +287,19 @@
       parents.sort(function () { return Math.random() - 0.5; });
 
       // אם נשארו פחות משימות ראשיות עם תת-משימות, נופלות פחות
+      let dropIndex = 0;
       parents.slice(0, KID_TASKS_PER_GRAB).forEach(function (category) {
         const name = randomItem(kidTasksLeft[category]);
         kidTasksLeft[category].splice(kidTasksLeft[category].indexOf(name), 1);  // לא תופיע שוב
 
-        createCube(name, category);
+        // נופל מלמעלה, מחוץ למסך, אל המגדל של הקטגוריה
+        const tile = createTile(name, category);
+        tile.style.visibility = "hidden";
+        setTimeout(function () {
+          tile.style.visibility = "";
+          putInTower(tile, category, -tile.offsetHeight);
+        }, dropIndex * KID_DROP_GAP);
+        dropIndex = dropIndex + 1;
 
         tasksCount = tasksCount + 1;
         totalHours = totalHours + KID_TASK_HOURS;
@@ -253,47 +308,53 @@
     }
 
     // ---------- גרירה ----------
-    function makeDraggable(cube) {
-      cube.addEventListener("pointerdown", function (event) {
+    function makeDraggable(tile) {
+      tile.addEventListener("pointerdown", function (event) {
         // כל המסך מוקטן כדי להיכנס לחלון, אז ממירים את תזוזת העכבר לגודל של הפריים
         const scale = Number(getComputedStyle(document.documentElement).getPropertyValue("--screen-scale")) || 1;
         const startMouseX = event.clientX, startMouseY = event.clientY;
-        const startLeft = cube.offsetLeft, startTop = cube.offsetTop;
+        const startLeft = tile.offsetLeft, startTop = tile.offsetTop;
 
-        // בפעם הראשונה שתופסים קובייה כדי לסדר אותה, נופלות עוד תת-משימות
-        if (!cube.dataset.grabbed) {
-          cube.dataset.grabbed = "yes";
+        // תופסים את האריח איפה שהוא עכשיו (גם באמצע נפילה)
+        clearTimeout(tile.fallTimer);
+        tile.classList.remove("falling", "landing");
+        tile.style.top = startTop + "px";
+
+        tile.setPointerCapture(event.pointerId);  // ממשיכים לגרור גם אם העכבר "בורח" מהאריח
+        tile.classList.add("dragging");
+        topLayer = topLayer + 1;
+        tile.style.zIndex = topLayer;
+
+        // אריח שהוצא מהמגדל: מה שהיה מעליו נופל למטה
+        if (tile.classList.contains("in-pile")) {
+          tile.classList.remove("in-pile");
+          settleTowers();
+        }
+
+        // בפעם הראשונה שתופסים אריח כדי לסדר אותו, נופלים עוד אריחים
+        if (!tile.dataset.grabbed) {
+          tile.dataset.grabbed = "yes";
           addKidTasks();
         }
 
-        cube.setPointerCapture(event.pointerId);  // ממשיכים לגרור גם אם העכבר "בורח" מהקובייה
-        cube.classList.remove("in-pile", "falling");  // קובייה שהוצאה מהערימה כבר לא "רצפה" לאחרות
-        cube.classList.add("dragging");
-        topLayer = topLayer + 1;
-        cube.style.zIndex = topLayer;
-
-        function moveCube(moveEvent) {
+        function moveTile(moveEvent) {
           let left = startLeft + (moveEvent.clientX - startMouseX) / scale;
           let top = startTop + (moveEvent.clientY - startMouseY) / scale;
-          // לא נותנים לקובייה לצאת מהמסך
-          left = Math.max(0, Math.min(left, FRAME_WIDTH - cube.offsetWidth));
-          top = Math.max(0, Math.min(top, FRAME_HEIGHT - cube.offsetHeight));
-          cube.style.left = left + "px";
-          cube.style.top = top + "px";
-
-          // בחצי השמאלי של המסך (ליד השעות) הקובייה מתיישרת. בחצי הימני חוזרת ההטיה שלה
-          const cubeMiddle = left + cube.offsetWidth / 2;
-          cube.classList.toggle("straight", cubeMiddle < FRAME_WIDTH / 2);
+          // לא נותנים לאריח לצאת מהמסך
+          left = Math.max(0, Math.min(left, FRAME_WIDTH - tile.offsetWidth));
+          top = Math.max(0, Math.min(top, FRAME_HEIGHT - tile.offsetHeight));
+          tile.style.left = left + "px";
+          tile.style.top = top + "px";
         }
 
-        function dropCube() {
-          cube.classList.remove("dragging");
-          cube.removeEventListener("pointermove", moveCube);
-          cube.removeEventListener("pointerup", dropCube);
+        function dropTile() {
+          tile.classList.remove("dragging");
+          tile.removeEventListener("pointermove", moveTile);
+          tile.removeEventListener("pointerup", dropTile);
         }
 
-        cube.addEventListener("pointermove", moveCube);
-        cube.addEventListener("pointerup", dropCube);
+        tile.addEventListener("pointermove", moveTile);
+        tile.addEventListener("pointerup", dropTile);
       });
     }
   </script>

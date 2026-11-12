@@ -9,7 +9,6 @@
   /* צבעים */
   --color-background: #000000;
   --color-text: #ffffff;
-  --color-orange: #ff9804;    /* הכפתור LETS GET ORGANIZED */
   --color-alert: #a80808;     /* אדום: מספר המשימות כשיש יותר מדי */
 
   /* הצבע של כל משימה (מדריך הצבעים, פריים 70:663). השמות כמו המשתנים בפיגמה.
@@ -21,7 +20,7 @@
   --workout-bubble: #ffb902;
   --cook-bubble: #766049;
   --clean-bubble: #02b0ef;
-  --shower-bubble: #bcaea6;
+  --shower-bubble: #e8fa80;
   --other-bubble: #3a68fd;
 
   /* פונטים */
@@ -32,62 +31,32 @@
 
   /* גדלי טקסט */
   --font-size-text: 40px;
-  --font-size-clock: 60px;
-  --font-size-title: 100px;
-  --font-size-tasks-count: 200px;
 
-  /* העמודה השמאלית: כותרת, רשימה וכפתור */
-  --left-column: 143px;
-  --title-top: 55px;
-  --list-left: 151px;
-  --list-top: 186px;
+  /* רשימת המשימות במסך הראשון */
   --list-item-height: 46px;
   --list-gap: 10px;            /* רווח בין משימות (56px בין שורה לשורה) */
   --list-other-extra-gap: 6px; /* "other:" קצת יותר רחוק מהשאר */
   --other-input-gap: 12px;     /* רווח בין "other:" לשדה ההקלדה */
   --other-input-width: 400px;
 
-  /* הכפתור */
-  --button-top: 824px;
-  --button-width: 360px;
-  --button-height: 67px;
-  --button-border-width: 4px;
-  --button-padding-left: 14px;
 
-  /* השעון בפינה הימנית העליונה */
-  --clock-left: calc(87.5% + 42px);
-  --clock-top: 29px;
 
-  /* הסיכום בצד ימין למטה */
-  /* הסיכום בצד ימין למעלה, מתחת לשעון (פריים 59:458, זהה בשני המסכים) */
-  --tasks-label-left: calc(75% + 65px);
-  --tasks-label-top: 116px;
-  --tasks-count-center: calc(81.25% + 108.5px);
-  --tasks-count-top: 145px;
-  --time-label-left: calc(75% + 65px);
-  --time-label-top: 389px;
-  --hours-count-center: calc(81.25% + 109px);
-  --hours-count-top: 440px;
-  --hours-word-left: calc(81.25% - 1.5px);
-  --hours-word-top: 513px;
 
   /* ---- המסך השני (organize.html, פריים 58:357) ---- */
 
   /* ציר השעות: רשימה לאורך הצד השמאלי של המסך */
   --font-size-small: 20px;
-  --timeline-left: 49px;
-  --timeline-top: 125px;
-  --timeline-height: 815px;    /* השעות מתפזרות בשווה מ-125px עד 940px מלמעלה */
+  --timeline-left: 61px;
+  --timeline-top: 113px;
+  --timeline-row: 53px;        /* כל שעה 53px מתחת לקודמת */
+  --timeline-height: 848px;    /* 16 שעות (9:00 עד 00:00 כמו בעיצוב). יותר שעות = השורות מתכווצות */
 
-  /* קוביות המשימות (המיקום ההתחלתי נקבע ב-JavaScript) */
-  /* הכל פי 1.5 מהגודל הקודם (176×53, טקסט 20px) */
-  --cube-width: 264px;
-  --cube-height: 80px;
-  --cube-border-width: 1.5px;
-  --cube-padding: 12px 18px;   /* רווח מסביב לטקסט: 12px למעלה ולמטה, 18px בצדדים */
-  --cube-font-size: 30px;
-  --fall-time: 700ms;
-  --straighten-time: 200ms;
+  /* האריחים של המשימות (פריים 82:849). הגודל והמיקום נקבעים ב-JavaScript */
+  --cube-border-width: 0.778px;
+  --cube-padding: 6px 8px;     /* רווח מסביב לטקסט (חייב להתאים ל-TILE_PADDING ב-organize.html) */
+  --cube-font-size: 20px;      /* כמו השעות */
+  --landing-time: 250ms;       /* "מכה" קטנה כשאריח נוחת */
+  --landing-squash: 0.97;      /* כמה האריח נמעך בנחיתה (1 = בכלל לא) */
   --breathe-time: 1s;          /* "נשימה" של מספר שגדל */
   --breathe-size: 1.2;         /* עד כמה הוא מתנפח (1.2 = פי 1.2) */
   --summary-layer: 100000;     /* הסיכום תמיד מעל כל הקוביות */
@@ -131,6 +100,7 @@
   --slider-hours-top: 519px;
   --save-left: calc(50% - 20px);
   --save-top: 567px;
+  --slider-glide-time: 150ms;          /* הסליידר "מחליק" בין קפיצה לקפיצה */
 
   /* הסליידר הקטן ליד משימה שנשמרה (פריים 98:109) */
   --task-slider-left: 374px;           /* 435px מקצה המסך, פחות 61px של הרשימה */
@@ -187,32 +157,12 @@ body {
 }
 
 /* ===================================================
-   השעון (השעה הנוכחית)
-   =================================================== */
-.clock {
-  position: absolute;
-  left: var(--clock-left);
-  top: var(--clock-top);
-  font-size: var(--font-size-clock);
-}
-
-/* ===================================================
-   הכותרת "today's to dos"
-   =================================================== */
-.page-title {
-  position: absolute;
-  left: var(--left-column);
-  top: var(--title-top);
-  font-size: var(--font-size-title);
-}
-
-/* ===================================================
    רשימת המשימות
    =================================================== */
 .task-list {
   position: absolute;
-  left: var(--list-left);
-  top: var(--list-top);
+  left: var(--first-left);
+  top: var(--first-list-top);
   list-style: none;
   display: flex;
   flex-direction: column;
@@ -275,79 +225,10 @@ body {
 .task-other        { --task-color: var(--other-bubble); }
 
 /* ===================================================
-   הכפתור LETS GET ORGANIZED: 2 מצבים כמו בפיגמה
-   =================================================== */
-.organize-button {
-  position: absolute;
-  left: var(--left-column);
-  top: var(--button-top);
-  width: var(--button-width);
-  height: var(--button-height);
-  padding-left: var(--button-padding-left);
-  border: var(--button-border-width) solid var(--color-orange);
-  background: transparent;            /* מצב רגיל: מסגרת וטקסט כתומים */
-  color: var(--color-orange);
-  font-family: var(--font-title);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-text);
-  text-transform: uppercase;
-  text-align: left;
-  cursor: pointer;
-}
-
-.organize-button:hover {
-  background: var(--color-orange);    /* ריחוף: רקע כתום וטקסט שחור */
-  color: var(--color-background);
-}
-
-/* ===================================================
-   הסיכום: כמה משימות להיום וכמה זמן
-   =================================================== */
-.tasks-label {
-  position: absolute;
-  left: var(--tasks-label-left);
-  top: var(--tasks-label-top);
-}
-
-.tasks-label .today-word {
-  text-transform: uppercase;
-}
-
-.tasks-count {
-  position: absolute;
-  left: var(--tasks-count-center);
-  top: var(--tasks-count-top);
-  transform: translateX(-50%);
-  font-size: var(--font-size-tasks-count);
-}
-
-.time-label {
-  position: absolute;
-  left: var(--time-label-left);
-  top: var(--time-label-top);
-}
-
-.hours-count {
-  position: absolute;
-  left: var(--hours-count-center);
-  top: var(--hours-count-top);
-  transform: translateX(-50%);
-  font-size: var(--font-size-title);
-}
-
-.hours-word {
-  position: absolute;
-  left: var(--hours-word-left);
-  top: var(--hours-word-top);
-  font-size: var(--font-size-title);
-}
-
-/* ===================================================
    המסך השני (organize.html)
    =================================================== */
 
-/* ציר השעות למעלה */
-/* השעות מפוזרות במרווחים שווים לאורך הצד השמאלי */
+/* ציר השעות לאורך הצד השמאלי */
 .timeline {
   position: absolute;
   left: var(--timeline-left);
@@ -355,46 +236,53 @@ body {
   height: var(--timeline-height);
   list-style: none;
   display: flex;
-  flex-direction: column;            /* השעות אחת מתחת לשנייה */
-  justify-content: space-between;
+  flex-direction: column;
   font-size: var(--font-size-small);
 }
 
-/* קובייה של משימה: צבע לפי המשימה, ואפשר לגרור אותה */
+/* כל שעה בשורה של 53px. אם יש יותר מדי שעות, השורות מתכווצות כדי להיכנס למסך */
+.timeline li {
+  flex: 0 1 var(--timeline-row);
+  min-height: 0;
+}
+
+/* אריח של משימה: צבע לפי הקטגוריה, ישר (בלי הטיה), ואפשר לגרור אותו.
+   הרוחב והגובה נקבעים ב-JavaScript */
 .task-cube {
   position: absolute;
-  width: var(--cube-width);
-  min-height: var(--cube-height);   /* שם ארוך: הקובייה מתארכת למטה */
   border: var(--cube-border-width) solid var(--color-background);
   background-color: var(--cube-background);
-  color: var(--color-text);   /* הטקסט לבן בכל הקוביות */
+  color: var(--color-text);   /* הטקסט לבן בכל האריחים */
   cursor: grab;
   touch-action: none;   /* גרירה עובדת גם במסך מגע */
   user-select: none;
 
-  /* שם המשימה ממורכז בתוך הקובייה. שם ארוך יורד לשורה נוספת */
+  /* שם המשימה ממורכז בתוך האריח */
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: var(--cube-padding);
   font-size: var(--cube-font-size);
-
-  transform: rotate(var(--tilt, 0deg));   /* הטיה קטנה ושובבה, הטקסט תמיד קריא */
+  overflow-wrap: break-word;
+  transform-origin: bottom;   /* בנחיתה האריח נמעך כלפי הרצפה */
 }
 
-/* בחצי השמאלי של המסך (ליד השעות) הקובייה מתיישרת (בהדרגה) */
-.task-cube {
-  transition: transform var(--straighten-time);
-}
-
-.task-cube.straight {
-  transform: rotate(0deg);
-}
-
-/* נפילה לערימה: מאיץ בסוף, כמו כוח משיכה */
+/* נפילה: מאיצה כמו כוח משיכה. --fall-time נקבע ב-JavaScript לפי גובה הנפילה */
 .task-cube.falling {
-  transition: top var(--fall-time) cubic-bezier(0.5, 0, 1, 1), transform var(--straighten-time);
+  transition: top var(--fall-time) cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+/* נחיתה: מכה עדינה, נמעך קצת וחוזר */
+.task-cube.landing {
+  animation: landing var(--landing-time) ease-out;
+}
+
+@keyframes landing {
+  0%   { transform: scaleY(1); }
+  35%  { transform: scaleY(var(--landing-squash)); }
+  70%  { transform: scaleY(1.01); }
+  100% { transform: scaleY(1); }
 }
 
 .task-cube.dragging {
@@ -412,7 +300,7 @@ body {
 .cube-shower       { --cube-background: var(--shower-bubble); }
 .cube-other        { --cube-background: var(--other-bubble); }
 
-/* בעמוד הזה הסיכום תמיד מעל הקוביות, כדי שהמספרים ייראו גם כשההר מגיע אליהם */
+/* הסיכום תמיד מעל האריחים, כדי שהמספרים ייראו גם כשהמגדלים מגיעים אליהם */
 .tasks-label, .tasks-count, .time-label, .hours-count, .hours-word {
   z-index: var(--summary-layer);
 }
@@ -435,9 +323,9 @@ body {
 
 
 /* ===================================================
-   המסך הראשון בעיצוב החדש (index.html, פריים 81:799)
+   הכותרת והסיכום (פריים 81:799, זהים בשני המסכים)
    =================================================== */
-.first-page .day-title {
+.day-title {
   position: absolute;
   left: var(--first-left);
   top: var(--day-title-top);
@@ -445,22 +333,17 @@ body {
   text-transform: uppercase;
 }
 
-.first-page .list-question {
+.list-question {
   position: absolute;
   left: var(--first-left);
   top: var(--list-question-top);
   font-size: var(--font-size-list-question);
 }
 
-.first-page .task-list {
-  left: var(--first-left);
-  top: var(--first-list-top);
-}
-
 /* הסיכום: כותרות קטנות באפור-בז׳ ומספרים לבנים */
-.first-page .tasks-label,
-.first-page .time-label,
-.first-page .hours-word {
+.tasks-label,
+.time-label,
+.hours-word {
   position: absolute;
   left: var(--summary-label-left);
   color: var(--color-label);
@@ -469,22 +352,22 @@ body {
   font-size: var(--font-size-label);
 }
 
-.first-page .tasks-label { top: var(--first-tasks-label-top); }
-.first-page .time-label  { top: var(--first-time-label-top); }
-.first-page .hours-word {
+.tasks-label { top: var(--first-tasks-label-top); }
+.time-label  { top: var(--first-time-label-top); }
+.hours-word {
   left: var(--first-hours-word-left);
   top: var(--first-hours-word-top);
 }
 
-.first-page .tasks-count,
-.first-page .hours-count {
+.tasks-count,
+.hours-count {
+  position: absolute;
   left: var(--summary-number-left);
-  transform: none;
   font-size: var(--font-size-summary-number);
 }
 
-.first-page .tasks-count { top: var(--first-tasks-count-top); }
-.first-page .hours-count { top: var(--first-hours-count-top); }
+.tasks-count { top: var(--first-tasks-count-top); }
+.hours-count { top: var(--first-hours-count-top); }
 
 /* ===================================================
    חלון הסליידר "how long should this task take?" (פריים 85:957)
@@ -546,6 +429,11 @@ body {
 .slider-fill {
   width: var(--fill-width);
 }
+
+/* המילוי, הידית והמספר מחליקים בעדינות לקפיצה הבאה במקום לקפוץ בבת אחת */
+.slider-fill   { transition: width var(--slider-glide-time) ease-out; }
+.slider-handle { transition: left var(--slider-glide-time) ease-out; }
+.slider-value  { transition: left var(--slider-glide-time) ease-out, right var(--slider-glide-time) ease-out; }
 
 /* הידית: קו דק וגבוה בסוף החלק המלא */
 .slider-handle {
