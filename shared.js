@@ -19,5 +19,8 @@ function updateClock() {
   clock.textContent = hours + ":" + minutes;
 }
 
-updateClock();                    // מציגים מיד
-setInterval(updateClock, 1000);   // ובודקים שוב כל שנייה
+// רק בעמודים שיש בהם שעון
+if (clock) {
+  updateClock();                    // מציגים מיד
+  setInterval(updateClock, 1000);   // ובודקים שוב כל שנייה
+}

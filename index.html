@@ -8,30 +8,29 @@
   <!-- הפונטים Advent Pro ו-Arimo מ-Google Fonts (כמו בפיגמה) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@700&family=Arimo:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Advent+Pro:wght@600;700&family=Arimo:wght@400;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="first-page">
 <div class="screen">
 
-  <!-- השעה הנוכחית (מתעדכנת לבד) -->
-  <p class="clock title-font">9:43</p>
+  <!-- הכותרות (פריים 81:799) -->
+  <p class="day-title title-font">lets organize the day</p>
+  <h1 class="list-question title-font">what’s on todays list?</h1>
 
-  <h1 class="page-title title-font">today’s to dos</h1>
-
-  <!-- רשימת המשימות: לחיצה מסמנת משימה להיום.
+  <!-- רשימת המשימות: לחיצה פותחת סליידר שבו בוחרים כמה זמן המשימה תיקח.
        data-selected-text = הטקסט שמופיע כשהמשימה נבחרה (בלי "?")
-       data-hours = כמה שעות המשימה מוסיפה ל-estimated time -->
+       data-hours = כמה שעות נבחרו בסליידר (נשמר רק אחרי save) -->
   <ul class="task-list">
-    <li><button class="task task-laundry" type="button" data-selected-text="laundry" data-hours="0.5">laundry?</button></li>
-    <li><button class="task task-grocery-shop" type="button" data-selected-text="grocery shop" data-hours="1.5">grocery shop?</button></li>
-    <li><button class="task task-school-work" type="button" data-selected-text="school work" data-hours="1.5">school work?</button></li>
-    <li><button class="task task-pay-bills" type="button" data-selected-text="pay bills" data-hours="0.5">pay bills?</button></li>
-    <li><button class="task task-workout" type="button" data-selected-text="workout" data-hours="1.5">workout?</button></li>
-    <li><button class="task task-cook" type="button" data-selected-text="cook" data-hours="1">cook?</button></li>
-    <li><button class="task task-clean" type="button" data-selected-text="clean" data-hours="1">clean?</button></li>
-    <li><button class="task task-shower" type="button" data-selected-text="shower" data-hours="0.5">shower?</button></li>
+    <li><button class="task task-laundry" type="button" data-selected-text="laundry">laundry?</button></li>
+    <li><button class="task task-grocery-shop" type="button" data-selected-text="grocery shop">grocery shop?</button></li>
+    <li><button class="task task-school-work" type="button" data-selected-text="school work">school work?</button></li>
+    <li><button class="task task-pay-bills" type="button" data-selected-text="pay bills">pay bills?</button></li>
+    <li><button class="task task-workout" type="button" data-selected-text="workout">workout?</button></li>
+    <li><button class="task task-cook" type="button" data-selected-text="cook">cook?</button></li>
+    <li><button class="task task-clean" type="button" data-selected-text="clean">clean?</button></li>
+    <li><button class="task task-shower" type="button" data-selected-text="shower">shower?</button></li>
     <!-- other: לחיצה פותחת שדה להקלדת משימה חדשה -->
     <li class="other-task">
       <button class="task task-other" type="button">other:</button>
@@ -39,15 +38,32 @@
     </li>
   </ul>
 
-  <button class="organize-button" type="button">lets get organized</button>
-
-  <!-- הסיכום בצד ימין -->
-  <p class="tasks-label">tasks for <span class="today-word title-font">today</span>:</p>
+  <!-- הסיכום בצד ימין למעלה -->
+  <p class="tasks-label">tasks to do today:</p>
   <p class="tasks-count title-font">0</p>
 
   <p class="time-label">estimated time:</p>
   <p class="hours-count title-font">0</p>
-  <p class="hours-word title-font">hours</p>
+  <p class="hours-word">hours</p>
+
+  <!-- חלון "כמה זמן?" (פריים 85:957). מופיע כשבוחרים משימה, ושאר המסך מתעמעם -->
+  <div class="slider-popup" hidden>
+    <p class="slider-question">how long should this task take?</p>
+
+    <!-- הסליידר: נגרר בקפיצות של חצי שעה, עד 5 שעות. הצבע לפי המשימה -->
+    <div class="slider">
+      <div class="slider-track"></div>
+      <div class="slider-fill"></div>
+      <div class="slider-handle"></div>
+      <p class="slider-value title-font"><span class="slider-number">0.5</span></p>
+    </div>
+    <p class="slider-hours-word">hours</p>
+
+    <button class="save-button" type="button">save</button>
+  </div>
+
+  <!-- מעבר למסך הבא (פריים 98:109) -->
+  <button class="let-me-organize title-font" type="button">let me organize</button>
 
 </div>
 
@@ -55,23 +71,131 @@
   <script src="shared.js"></script>
 
   <script>
-    // ---------- בחירת משימות ----------
-    const tasks = document.querySelectorAll(".task");
+    // ---------- הסיכום ----------
+    const screen = document.querySelector(".screen");
     const tasksCount = document.querySelector(".tasks-count");
     const hoursCount = document.querySelector(".hours-count");
 
-    // מעדכן את הסיכום: כמה משימות נבחרו וכמה שעות הן לוקחות
+    // מעדכן את הסיכום: כמה משימות נשמרו וכמה שעות הן לוקחות
     function updateSummary() {
-      // רק משימות אמיתיות (עם שעות). other: עצמו לא נספר
-      const selectedTasks = document.querySelectorAll(".task.selected[data-hours]");
+      // רק משימות שנשמרו עם שעות. other: עצמו לא נספר
+      const savedTasks = document.querySelectorAll(".task.selected[data-hours]");
       let totalHours = 0;
-      selectedTasks.forEach(function (task) {
+      savedTasks.forEach(function (task) {
         totalHours = totalHours + Number(task.dataset.hours);
       });
-      tasksCount.textContent = selectedTasks.length;
+      tasksCount.textContent = savedTasks.length;
       hoursCount.textContent = totalHours;   // למשל 0, 1.5, 4
     }
 
+    // ---------- הסליידרים ----------
+    // יש שני סוגים: הסליידר בחלון "how long should this task take?",
+    // וסליידר קטן ליד כל משימה שנשמרה (אפשר להמשיך לשנות אותו)
+    const HOURS_STEP = 0.5;                        // הסליידר קופץ בחצאי שעה
+    const MAX_HOURS = 5;                           // עד 5 שעות
+    const SLIDER_STEPS = MAX_HOURS / HOURS_STEP;   // 10 קפיצות
+
+    // מציג ערך על סליידר: המילוי, הידית והמספר זזים יחד
+    function setSliderHours(slider, hours) {
+      slider.dataset.hours = hours;
+      slider.style.setProperty("--fill-steps", hours / HOURS_STEP);
+      slider.querySelector(".slider-number").textContent = hours;
+      const unit = slider.querySelector(".slider-unit");      // רק בסליידר הקטן
+      if (unit) unit.textContent = hours <= 1 ? "hour" : "hours";
+    }
+
+    // גרירה (או לחיצה) על סליידר: הערך נקבע לפי מיקום העכבר, בקפיצות של חצי שעה.
+    // onChange (לא חובה) נקרא בכל פעם שהערך משתנה
+    function makeSliderDraggable(slider, onChange) {
+      function moveTo(event) {
+        const box = slider.getBoundingClientRect();
+        const stepWidth = box.width / SLIDER_STEPS;
+        let steps = Math.ceil((event.clientX - box.left) / stepWidth);
+        steps = Math.max(1, Math.min(steps, SLIDER_STEPS));   // בין חצי שעה ל-5 שעות
+        setSliderHours(slider, steps * HOURS_STEP);
+        if (onChange) onChange(steps * HOURS_STEP);
+      }
+      slider.addEventListener("pointerdown", function (event) {
+        slider.setPointerCapture(event.pointerId);   // ממשיכים לגרור גם מחוץ לסליידר
+        moveTo(event);
+      });
+      slider.addEventListener("pointermove", function (event) {
+        if (slider.hasPointerCapture(event.pointerId)) moveTo(event);
+      });
+    }
+
+    // הצבעים של משימה: צבע הסליידר, וצבע הטקסט עליו (לבן על צבע כהה)
+    function copyTaskColors(task, slider) {
+      const style = getComputedStyle(task);
+      slider.style.setProperty("--slider-color", style.getPropertyValue("--task-color"));
+      slider.style.setProperty("--slider-text", style.getPropertyValue("--slider-text"));
+    }
+
+    // ---------- החלון "how long should this task take?" ----------
+    const popup = document.querySelector(".slider-popup");
+    const popupSlider = popup.querySelector(".slider");
+    let popupTask = null;        // המשימה שהחלון פתוח בשבילה
+
+    makeSliderDraggable(popupSlider);
+
+    // פותח את החלון בצבע של המשימה, ומתחיל מחצי שעה
+    function openSlider(task) {
+      popupTask = task;
+      copyTaskColors(task, popup);   // הסליידר וכפתור save בחלון מקבלים את הצבע
+      setSliderHours(popupSlider, HOURS_STEP);
+      popup.hidden = false;
+      screen.classList.add("popup-open");    // שאר המסך מתעמעם
+    }
+
+    function closeSlider() {
+      popup.hidden = true;
+      screen.classList.remove("popup-open");
+      popupTask = null;
+    }
+
+    // save: המשימה נבחרת, השעות נכנסות לסיכום, וסליידר קטן מופיע ליד המשימה
+    document.querySelector(".save-button").addEventListener("click", function () {
+      const hours = Number(popupSlider.dataset.hours);
+      popupTask.dataset.hours = hours;
+      popupTask.classList.add("selected");
+      popupTask.textContent = popupTask.dataset.selectedText;
+      addTaskSlider(popupTask, hours);
+      closeSlider();
+      updateSummary();
+    });
+
+    // ---------- הסליידר הקטן ליד משימה שנשמרה (פריים 98:109) ----------
+    function addTaskSlider(task, hours) {
+      const slider = document.createElement("div");
+      slider.className = "slider task-slider";
+      slider.innerHTML =
+        '<div class="slider-track"></div>' +
+        '<div class="slider-fill"></div>' +
+        '<div class="slider-handle"></div>' +
+        '<p class="slider-value"><span class="slider-number"></span><br><span class="slider-unit"></span></p>';
+      copyTaskColors(task, slider);
+      setSliderHours(slider, hours);
+
+      // שינוי בסליידר מעדכן מיד את השעות של המשימה ואת הסיכום
+      makeSliderDraggable(slider, function (newHours) {
+        task.dataset.hours = newHours;
+        updateSummary();
+      });
+
+      task.parentElement.appendChild(slider);   // באותה שורה של המשימה
+    }
+
+    function removeTaskSlider(task) {
+      const slider = task.parentElement.querySelector(".task-slider");
+      if (slider) slider.remove();
+    }
+
+    // Escape סוגר את החלון בלי לשמור
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !popup.hidden) closeSlider();
+    });
+
+    // ---------- בחירת משימות ----------
     // ריחוף: נצבע רק כל עוד העכבר על המילה
     function addHover(button) {
       button.addEventListener("mouseenter", function () {
@@ -82,23 +206,28 @@
       });
     }
 
-    // מפעיל משימה: ריחוף, ולחיצה שבוחרת אותה או מבטלת
+    // לחיצה על משימה: אם עוד לא נבחרה, פותחים את הסליידר.
+    // אם כבר נבחרה, הלחיצה מבטלת אותה והשעות שלה יורדות מהסיכום
     function setupTask(task) {
-      const normalText = task.textContent;               // למשל "laundry?"
-      const selectedText = task.dataset.selectedText;    // למשל "laundry"
+      const normalText = task.textContent;   // למשל "laundry?"
 
       addHover(task);
       task.addEventListener("click", function () {
-        task.classList.toggle("selected");
-        task.textContent = task.classList.contains("selected") ? selectedText : normalText;
-        updateSummary();
+        if (task.classList.contains("selected")) {
+          task.classList.remove("selected");
+          delete task.dataset.hours;
+          task.textContent = normalText;
+          removeTaskSlider(task);
+          updateSummary();
+        } else {
+          openSlider(task);
+        }
       });
     }
 
     document.querySelectorAll(".task:not(.task-other)").forEach(setupTask);
 
     // ---------- other: הקלדת משימה חדשה ----------
-    const NEW_TASK_HOURS = 0.5;   // כמה שעות מוסיפה משימה שהוקלדה (כמו other:)
     const otherButton = document.querySelector(".task-other");
     const otherInput = document.querySelector(".other-input");
     const otherItem = document.querySelector(".other-task");
@@ -133,32 +262,29 @@
       if (otherInput.value.trim() === "") closeOtherInput();
     });
 
-    // מוסיף משימה חדשה מעל other:, בצבע של other:, וכבר מסומנת להיום
+    // מוסיף משימה חדשה מעל other: בצבע של other:, ופותח לה את הסליידר
     function addNewTask(text) {
       const task = document.createElement("button");
       task.className = "task task-other";
       task.type = "button";
       task.textContent = text + "?";
       task.dataset.selectedText = text;
-      task.dataset.hours = NEW_TASK_HOURS;
 
       const item = document.createElement("li");
       item.appendChild(task);
       otherItem.before(item);    // other: יורד שורה למטה
 
       setupTask(task);
-      task.click();              // מסמנים אותה כמשימה להיום
+      openSlider(task);          // כמה זמן היא תיקח?
     }
 
-    // ---------- LETS GET ORGANIZED: עוברים למסך הבא ----------
-    // שומרים את הסיכום בדפדפן, כדי שהמסך הבא יציג את אותם מספרים
-    document.querySelector(".organize-button").addEventListener("click", function () {
+    // ---------- מעבר למסך הבא (organize.html) ----------
+    // שומרים את הסיכום ואת המשימות שנבחרו, כדי שהמסך הבא יציג אותם.
+    function goToOrganize() {
       sessionStorage.setItem("tasksCount", tasksCount.textContent);
       sessionStorage.setItem("totalHours", hoursCount.textContent);
 
-      // גם רשימת המשימות שסומנו: השם והקטגוריה של כל אחת (בשביל הקוביות במסך הבא).
-      // הקטגוריה היא החלק אחרי "task-" בשם המחלקה, למשל task-grocery-shop → grocery-shop.
-      // משימות שהוקלדו דרך other: מקבלות את הקטגוריה other
+      // השם והקטגוריה של כל משימה, למשל task-grocery-shop → grocery-shop
       const selectedTasks = [];
       document.querySelectorAll(".task.selected[data-hours]").forEach(function (task) {
         const categoryClass = Array.from(task.classList).find(function (name) {
@@ -172,7 +298,9 @@
       sessionStorage.setItem("selectedTasks", JSON.stringify(selectedTasks));
 
       window.location.href = "organize.html";
-    });
+    }
+
+    document.querySelector(".let-me-organize").addEventListener("click", goToOrganize);
   </script>
 
 </body>

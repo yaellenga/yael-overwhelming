@@ -90,7 +90,62 @@
   --straighten-time: 200ms;
   --breathe-time: 1s;          /* "נשימה" של מספר שגדל */
   --breathe-size: 1.2;         /* עד כמה הוא מתנפח (1.2 = פי 1.2) */
-  --summary-layer: 100000;     /* הסיכום תמיד מעל כל הקוביות */    /* כמה מהר קובייה מתיישרת כשגוררים אותה למעלה */          /* זמן הנפילה לערימה (חייב להתאים ל-FALL_TIME ב-organize.html) */
+  --summary-layer: 100000;     /* הסיכום תמיד מעל כל הקוביות */
+
+  /* ---- המסך הראשון בעיצוב החדש (index.html, פריים 81:799) ---- */
+  --color-label: #bcaea6;              /* "tasks to do today:" וכו' */
+  --first-left: 61px;                  /* העמודה השמאלית */
+  --day-title-top: 56px;
+  --font-size-day-title: 30px;
+  --list-question-top: 154px;
+  --font-size-list-question: 70px;
+  --first-list-top: 285px;
+  --font-size-label: 22.354px;
+  --font-size-summary-number: 86.126px;
+  --summary-label-left: calc(81.25% + 65.5px);
+  --summary-number-left: calc(81.25% + 60.5px);
+  --first-tasks-label-top: 56px;
+  --first-tasks-count-top: 71px;
+  --first-time-label-top: 186px;
+  --first-hours-count-top: 201px;
+  --first-hours-word-left: calc(93.75% + 11.5px);
+  --first-hours-word-top: 263px;
+
+  /* חלון הסליידר (פריים 85:957) */
+  --dimmed-opacity: 0.3;               /* שאר המסך כשהחלון פתוח */
+  --slider-question-left: calc(50% - 289px);
+  --slider-question-top: 420px;
+  --slider-question-width: 578px;
+  --slider-left: calc(37.5% + 12px);
+  --slider-top: 485px;                 /* הקו של הידית מתחיל 4px מעל הפס */
+  --slider-width: 300px;
+  --slider-bar-height: 48px;
+  --slider-handle-height: 56px;
+  --slider-handle-width: 3.733px;
+  --slider-track-opacity: 0.48;        /* הפס הריק שקוף למחצה */
+  --slider-value-top: 14px;            /* בתוך הסליידר */
+  --font-size-slider-value: 23px;
+  --slider-value-spacing: -0.23px;
+  --font-size-slider-text: 18px;
+  --slider-hours-left: calc(56.25% + 35.5px);
+  --slider-hours-top: 519px;
+  --save-left: calc(50% - 20px);
+  --save-top: 567px;
+
+  /* הסליידר הקטן ליד משימה שנשמרה (פריים 98:109) */
+  --task-slider-left: 374px;           /* 435px מקצה המסך, פחות 61px של הרשימה */
+  --task-slider-top: -5px;             /* הידית בולטת 3px מעל הפס, והפס 2px מעל שורת המשימה */
+  --task-slider-width: 250px;
+  --task-slider-bar-height: 39px;
+  --task-slider-handle-height: 45px;
+  --task-slider-handle-width: 3px;
+  --task-slider-value-top: 6px;
+  --font-size-task-slider: 14px;
+  --font-weight-semibold: 600;
+
+  /* הקישור LET ME ORGANIZE */
+  --let-me-organize-left: calc(50% - 107px);
+  --let-me-organize-top: 854px;
 
 }
 
@@ -213,6 +268,10 @@ body {
 .task-cook         { --task-color: var(--cook-bubble); }
 .task-clean        { --task-color: var(--clean-bubble); }
 .task-shower       { --task-color: var(--shower-bubble); }
+
+/* צבע הטקסט על הסליידר: שחור, ולבן על צבע כהה (school work, פריים 98:109) */
+.task              { --slider-text: var(--color-background); }
+.task-school-work  { --slider-text: var(--color-text); }
 .task-other        { --task-color: var(--other-bubble); }
 
 /* ===================================================
@@ -374,3 +433,209 @@ body {
   100% { scale: 1; }
 }
 
+
+/* ===================================================
+   המסך הראשון בעיצוב החדש (index.html, פריים 81:799)
+   =================================================== */
+.first-page .day-title {
+  position: absolute;
+  left: var(--first-left);
+  top: var(--day-title-top);
+  font-size: var(--font-size-day-title);
+  text-transform: uppercase;
+}
+
+.first-page .list-question {
+  position: absolute;
+  left: var(--first-left);
+  top: var(--list-question-top);
+  font-size: var(--font-size-list-question);
+}
+
+.first-page .task-list {
+  left: var(--first-left);
+  top: var(--first-list-top);
+}
+
+/* הסיכום: כותרות קטנות באפור-בז׳ ומספרים לבנים */
+.first-page .tasks-label,
+.first-page .time-label,
+.first-page .hours-word {
+  position: absolute;
+  left: var(--summary-label-left);
+  color: var(--color-label);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-label);
+}
+
+.first-page .tasks-label { top: var(--first-tasks-label-top); }
+.first-page .time-label  { top: var(--first-time-label-top); }
+.first-page .hours-word {
+  left: var(--first-hours-word-left);
+  top: var(--first-hours-word-top);
+}
+
+.first-page .tasks-count,
+.first-page .hours-count {
+  left: var(--summary-number-left);
+  transform: none;
+  font-size: var(--font-size-summary-number);
+}
+
+.first-page .tasks-count { top: var(--first-tasks-count-top); }
+.first-page .hours-count { top: var(--first-hours-count-top); }
+
+/* ===================================================
+   חלון הסליידר "how long should this task take?" (פריים 85:957)
+   =================================================== */
+/* כשהחלון פתוח, כל השאר מתעמעם */
+.screen.popup-open > :not(.slider-popup) {
+  opacity: var(--dimmed-opacity);
+}
+
+.slider-popup {
+  position: absolute;
+  inset: 0;               /* מכסה את כל המסך, כך שאי אפשר ללחוץ על הרשימה מאחור */
+}
+
+.slider-popup[hidden] {
+  display: none;
+}
+
+.slider-question {
+  position: absolute;
+  left: var(--slider-question-left);
+  top: var(--slider-question-top);
+  width: var(--slider-question-width);
+  text-align: center;
+}
+
+/* הסליידר. --fill-steps נקבע ב-JavaScript */
+.slider {
+  position: absolute;
+  left: var(--slider-left);
+  top: var(--slider-top);
+  width: var(--slider-width);
+  height: var(--slider-handle-height);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+/* הפס כולו: בצבע המשימה, שקוף למחצה */
+.slider-track,
+.slider-fill {
+  position: absolute;
+  left: 0;
+  top: calc((var(--slider-handle-height) - var(--slider-bar-height)) / 2);
+  height: var(--slider-bar-height);
+  background-color: var(--slider-color);
+}
+
+.slider-track {
+  width: 100%;
+  opacity: var(--slider-track-opacity);
+}
+
+/* החלק המלא: בצבע המשימה, עד הידית. --fill-steps = כמה חצאי שעה נבחרו (מתוך 10) */
+.slider {
+  --fill-width: calc(var(--fill-steps, 1) * var(--slider-width) / 10);
+}
+
+.slider-fill {
+  width: var(--fill-width);
+}
+
+/* הידית: קו דק וגבוה בסוף החלק המלא */
+.slider-handle {
+  position: absolute;
+  left: calc(var(--fill-width) - var(--slider-handle-width));
+  top: 0;
+  width: var(--slider-handle-width);
+  height: var(--slider-handle-height);
+  background-color: var(--slider-color);
+}
+
+/* המספר זז עם הידית, בתוך החלק המלא */
+.slider-value {
+  position: absolute;
+  right: calc(100% - var(--fill-width) + var(--slider-handle-width));
+  top: var(--slider-value-top);
+  color: var(--slider-text, var(--color-background));
+  font-size: var(--font-size-slider-value);
+  letter-spacing: var(--slider-value-spacing);
+  white-space: nowrap;
+}
+
+.slider-hours-word {
+  position: absolute;
+  left: var(--slider-hours-left);
+  top: var(--slider-hours-top);
+  font-size: var(--font-size-slider-text);
+}
+
+.save-button {
+  position: absolute;
+  left: var(--save-left);
+  top: var(--save-top);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-slider-text);
+  cursor: pointer;
+}
+
+/* ריחוף על save: בצבע של המשימה */
+.save-button:hover {
+  color: var(--slider-color);
+}
+
+/* הסליידר הקטן ליד משימה: אותו סליידר, רק קטן יותר */
+.task-list li {
+  position: relative;
+}
+
+.task-slider {
+  --slider-width: var(--task-slider-width);
+  --slider-bar-height: var(--task-slider-bar-height);
+  --slider-handle-height: var(--task-slider-handle-height);
+  --slider-handle-width: var(--task-slider-handle-width);
+  left: var(--task-slider-left);
+  top: var(--task-slider-top);
+}
+
+/* המספר והמילה hours בשתי שורות, בתחילת הפס (קרוב יותר לקצה כשהפס קצר) */
+.task-slider .slider-value {
+  right: auto;
+  left: clamp(2px, var(--fill-width) - 23px, 10px);
+  top: var(--task-slider-value-top);
+  font-family: var(--font-title);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-task-slider);
+  letter-spacing: normal;
+  line-height: normal;
+}
+
+/* ===================================================
+   הקישור LET ME ORGANIZE: עובר למסך הבא
+   =================================================== */
+.let-me-organize {
+  position: absolute;
+  left: var(--let-me-organize-left);
+  top: var(--let-me-organize-top);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--font-size-day-title);
+  text-transform: uppercase;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ריחוף על LET ME ORGANIZE: בירוק של grocery shop (מדריך הצבעים) */
+.let-me-organize:hover {
+  color: var(--grocery-bubble);
+}
