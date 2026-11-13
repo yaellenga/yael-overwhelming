@@ -92,11 +92,12 @@
     const TOWERS_LEFT = 423;        // המגדל הראשון מתחיל ב-25%+45px, כמו בעיצוב
     const TOWER_WIDTH = 200;        // בערך הרוחב של מגדל בעיצוב. אריחים צרים יכולים לנחות קצת ימינה או שמאלה
     const TILE_MIN_WIDTH = 45,  TILE_MAX_WIDTH = 185;    // הגדלים של האריחים בעיצוב
-    const TILE_MIN_HEIGHT = 53, TILE_MAX_HEIGHT = 236;
+    const TILE_MIN_HEIGHT = 53, TILE_MAX_HEIGHT = 120;   // עד גובה בינוני
+    const TILE_WIDEST = 300;        // טקסט ארוך: האריח מתרחב עד כאן כדי לא להיות גבוה מדי
     const TILE_PADDING = 8;         // הרווח בצדדים של הטקסט (כמו --cube-padding ב-CSS)
     const FULL_FALL_TIME = 1600;    // כמה זמן לוקחת נפילה מלמעלה עד למטה (מילישניות). נפילה קצרה מהירה יותר
     const LANDING_TIME = 250;       // משך ה"מכה" בנחיתה (כמו --landing-time ב-CSS)
-    const KID_DROP_GAP = 150;       // הפרש קטן בין אריחים שנופלים יחד
+    const KID_DROP_SPREAD = 1500;   // אריחים שנופלים יחד מתחילים בזמן אקראי, עד 1.5 שניות אחד מהשני
 
     const screen = document.querySelector(".screen");
     const selectedTasks = JSON.parse(sessionStorage.getItem("selectedTasks") || "[]");
@@ -107,15 +108,21 @@
       return min + Math.random() * (max - min);
     }
 
-    // מגדל לכל קטגוריה שנבחרה, לפי הסדר ברשימה, מפוזרים בשווה עד הקצה הימני
+    // מספר המגדלים = מספר הקטגוריות שנבחרו. מפוזרים בשווה עד הקצה הימני.
+    // בהתחלה כל קטגוריה בבסיס של מגדל משלה, ואחר כך אריחים נופלים למגדלים אקראיים (המגדלים מתערבבים)
     const categories = [];
     selectedTasks.forEach(function (task) {
       if (!categories.includes(task.category)) categories.push(task.category);
     });
     const columnWidth = (FRAME_WIDTH - TOWERS_LEFT) / Math.max(categories.length, 1);
 
-    function towerCenter(category) {
-      return TOWERS_LEFT + columnWidth * (categories.indexOf(category) + 0.5);
+    // מרכז המגדל. towerNumber מתחיל מ-0 (המגדל הכי שמאלי)
+    function towerCenter(towerNumber) {
+      return TOWERS_LEFT + columnWidth * (towerNumber + 0.5);
+    }
+
+    function randomTower() {
+      return Math.floor(Math.random() * categories.length);
     }
 
     // ---- הגודל של אריח: אקראי, אבל טקסט ארוך מקבל אריח גדול שהוא נכנס בו ----
@@ -134,11 +141,18 @@
     function sizeTile(tile) {
       // רוחב: לפחות כמו המילה הכי ארוכה, כדי שאף מילה לא תישבר
       const minWidth = Math.max(TILE_MIN_WIDTH, Math.ceil(longestWordWidth(tile)) + TILE_PADDING * 2 + 2);
-      const width = randomBetween(minWidth, Math.max(minWidth, TILE_MAX_WIDTH));
+      let width = randomBetween(minWidth, Math.max(minWidth, TILE_MAX_WIDTH));
       tile.style.width = width + "px";
 
-      // גובה: לפחות כמו הטקסט (טקסט ארוך יורד שורות ומקבל אריח גבוה יותר).
-      // רוב האריחים יוצאים נמוכים, וחלק גבוהים, כמו בעיצוב
+      // טקסט ארוך באריח צר יורד הרבה שורות ומגביה אותו.
+      // במקום שיהיה גבוה מדי, מרחיבים את האריח עד שהטקסט נכנס בגובה המקסימלי
+      while (tile.offsetHeight > TILE_MAX_HEIGHT && width < TILE_WIDEST) {
+        width = width + 10;
+        tile.style.width = width + "px";
+      }
+
+      // גובה: לפחות כמו הטקסט, ולכל היותר גובה בינוני.
+      // רוב האריחים יוצאים נמוכים, וחלק בינוניים
       const minHeight = Math.max(TILE_MIN_HEIGHT, tile.offsetHeight);
       const height = minHeight + Math.random() * Math.random() * Math.max(0, TILE_MAX_HEIGHT - minHeight);
       tile.style.height = height + "px";
@@ -166,7 +180,8 @@
     // בנחיתה יש "מכה" עדינה: האריח נמעך קצת וחוזר
     function fallTo(tile, toTop) {
       const distance = toTop - tile.offsetTop;
-      const fallTime = FULL_FALL_TIME * Math.sqrt(Math.max(distance, 0) / FRAME_HEIGHT);
+      // כל נפילה קצת שונה (עד 15% יותר מהר או לאט), כדי שלא ייראה מכני
+      const fallTime = FULL_FALL_TIME * Math.sqrt(Math.max(distance, 0) / FRAME_HEIGHT) * randomBetween(0.85, 1.15);
       tile.style.setProperty("--fall-time", fallTime + "ms");
       tile.classList.add("falling");
       tile.style.top = toTop + "px";
@@ -181,12 +196,12 @@
       }, fallTime);
     }
 
-    // מכניס אריח למגדל של הקטגוריה שלו.
+    // מכניס אריח למגדל.
     // fromTop = איפה הוא מתחיל (למעלה מחוץ למסך). בלי fromTop הוא פשוט מונח במקום (בהתחלה)
-    function putInTower(tile, category, fromTop) {
+    function putInTower(tile, towerNumber, fromTop) {
       // מקום אקראי קטן סביב מרכז המגדל, כדי שהמגדל לא יהיה ישר לגמרי
       const wiggle = Math.max(0, (TOWER_WIDTH - tile.offsetWidth) / 2);
-      let left = towerCenter(category) - tile.offsetWidth / 2 + randomBetween(-wiggle, wiggle);
+      let left = towerCenter(towerNumber) - tile.offsetWidth / 2 + randomBetween(-wiggle, wiggle);
       left = Math.max(TOWERS_LEFT, Math.min(left, FRAME_WIDTH - tile.offsetWidth));
 
       const startTop = fromTop === undefined ? -FRAME_HEIGHT : fromTop;
@@ -242,7 +257,7 @@
     document.fonts.ready.then(function () {
       selectedTasks.forEach(function (task) {
         const tile = createTile(task.name, task.category);
-        putInTower(tile, task.category);
+        putInTower(tile, categories.indexOf(task.category));   // הבסיס של המגדל שלה
       });
     });
 
@@ -287,19 +302,17 @@
       parents.sort(function () { return Math.random() - 0.5; });
 
       // אם נשארו פחות משימות ראשיות עם תת-משימות, נופלות פחות
-      let dropIndex = 0;
       parents.slice(0, KID_TASKS_PER_GRAB).forEach(function (category) {
         const name = randomItem(kidTasksLeft[category]);
         kidTasksLeft[category].splice(kidTasksLeft[category].indexOf(name), 1);  // לא תופיע שוב
 
-        // נופל מלמעלה, מחוץ למסך, אל המגדל של הקטגוריה
+        // נופל מלמעלה, מחוץ למסך, אל מגדל אקראי, בזמן אקראי
         const tile = createTile(name, category);
         tile.style.visibility = "hidden";
         setTimeout(function () {
           tile.style.visibility = "";
-          putInTower(tile, category, -tile.offsetHeight);
-        }, dropIndex * KID_DROP_GAP);
-        dropIndex = dropIndex + 1;
+          putInTower(tile, randomTower(), -tile.offsetHeight);
+        }, randomBetween(0, KID_DROP_SPREAD));
 
         tasksCount = tasksCount + 1;
         totalHours = totalHours + KID_TASK_HOURS;

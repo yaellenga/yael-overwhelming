@@ -145,11 +145,21 @@
       setSliderHours(popupSlider, HOURS_STEP);
       popup.hidden = false;
       screen.classList.add("popup-open");    // שאר המסך מתעמעם
+      setBackgroundLocked(true);
+    }
+
+    // כשהחלון פתוח, אי אפשר להגיע לשום דבר מאחור, גם לא עם המקלדת (Tab).
+    // רק הסליידר ו-save עובדים
+    function setBackgroundLocked(locked) {
+      Array.from(screen.children).forEach(function (element) {
+        if (element !== popup) element.inert = locked;
+      });
     }
 
     function closeSlider() {
       popup.hidden = true;
       screen.classList.remove("popup-open");
+      setBackgroundLocked(false);
       popupTask = null;
     }
 
@@ -190,10 +200,6 @@
       if (slider) slider.remove();
     }
 
-    // Escape סוגר את החלון בלי לשמור
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && !popup.hidden) closeSlider();
-    });
 
     // ---------- בחירת משימות ----------
     // ריחוף: נצבע רק כל עוד העכבר על המילה

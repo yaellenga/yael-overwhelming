@@ -268,9 +268,9 @@ body {
   transform-origin: bottom;   /* בנחיתה האריח נמעך כלפי הרצפה */
 }
 
-/* נפילה: מאיצה כמו כוח משיכה. --fall-time נקבע ב-JavaScript לפי גובה הנפילה */
+/* נפילה: מאיצה בעדינות כמו כוח משיכה. --fall-time נקבע ב-JavaScript לפי גובה הנפילה */
 .task-cube.falling {
-  transition: top var(--fall-time) cubic-bezier(0.55, 0, 1, 0.45);
+  transition: top var(--fall-time) cubic-bezier(0.4, 0, 0.75, 0.6);
 }
 
 /* נחיתה: מכה עדינה, נמעך קצת וחוזר */
@@ -378,6 +378,7 @@ body {
 /* כשהחלון פתוח, כל השאר מתעמעם */
 .screen.popup-open > :not(.slider-popup) {
   opacity: var(--dimmed-opacity);
+  pointer-events: none;   /* ואי אפשר ללחוץ על שום דבר מאחור (רק הסליידר ו-save עובדים) */
 }
 
 .slider-popup {
