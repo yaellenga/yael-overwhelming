@@ -48,8 +48,7 @@
   --font-size-small: 20px;
   --timeline-left: 61px;
   --timeline-top: 113px;
-  --timeline-row: 53px;        /* כל שעה 53px מתחת לקודמת */
-  --timeline-height: 848px;    /* 16 שעות (9:00 עד 00:00 כמו בעיצוב). יותר שעות = השורות מתכווצות */
+  --timeline-height: 795px;    /* מהשעה הראשונה עד 00:00 (בעיצוב 00:00 נמצא ב-908px). המרווח בין השעות משתנה */
 
   /* האריחים של המשימות (פריים 82:849). הגודל והמיקום נקבעים ב-JavaScript */
   --cube-border-width: 0.778px;
@@ -113,6 +112,22 @@
   --task-slider-value-top: 6px;
   --font-size-task-slider: 14px;
   --font-weight-semibold: 600;
+
+  /* התראה במסך האריחים (פריים 102:292) */
+  --alert-background: #bbbbbb;
+  --alert-border-color: #f03003;
+  --alert-text-color: #ff0000;
+  --alert-width: 386px;
+  --alert-height: 166px;
+  --alert-border-width: 6px;
+  --alert-top: 40px;
+  --font-size-alert: 40px;
+  --alert-line-height: 1.38;
+  --alert-layer: 200000;               /* מעל הכל, גם מעל הסיכום */
+  --alert-pop-time: 1100ms;            /* הופעה + שתי פעימות */
+  --alert-wait-time: 1500ms;           /* מחכה לפני שהיא יוצאת */
+  --alert-leave-time: 500ms;
+  --alert-pulse-size: 1.08;
 
   /* הקישור LET ME ORGANIZE */
   --let-me-organize-left: calc(50% - 107px);
@@ -238,13 +253,13 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;   /* השעה הראשונה למעלה, 00:00 תמיד למטה, והשאר מתפזרות באופן שווה */
   font-size: var(--font-size-small);
 }
 
-/* כל שעה בשורה של 53px. אם יש יותר מדי שעות, השורות מתכווצות כדי להיכנס למסך */
+/* לכל שעה אין גובה משלה, כך שהמרווחים נקבעים רק לפי כמה שעות יש */
 .timeline li {
-  flex: 0 1 var(--timeline-row);
-  min-height: 0;
+  height: 0;
 }
 
 /* אריח של משימה: צבע לפי הקטגוריה, ישר (בלי הטיה), ואפשר לגרור אותו.
@@ -539,4 +554,53 @@ body {
   color: var(--color-text);
   text-decoration: none;
   cursor: pointer;
+}
+
+
+/* ===================================================
+   התראה (פריים 102:292): קופצת למעלה במרכז המסך
+   =================================================== */
+.efficiency-alert {
+  position: absolute;
+  left: calc(50% - var(--alert-width) / 2);
+  top: var(--alert-top);
+  width: var(--alert-width);
+  height: var(--alert-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--alert-background);
+  border: var(--alert-border-width) solid var(--alert-border-color);
+  color: var(--alert-text-color);
+  font-size: var(--font-size-alert);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--alert-line-height);
+  text-transform: uppercase;
+  z-index: var(--alert-layer);
+  pointer-events: none;      /* לא מפריעה לגרור אריחים */
+}
+
+.efficiency-alert[hidden] {
+  display: none;
+}
+
+/* מופיעה משום מקום ופועמת פעמיים, מחכה 1.5 שניות ואז מחליקה למעלה מחוץ למסך */
+.efficiency-alert.show-alert {
+  animation:
+    alert-pop var(--alert-pop-time) ease-in-out,
+    alert-leave var(--alert-leave-time) ease-in calc(var(--alert-pop-time) + var(--alert-wait-time)) forwards;
+}
+
+@keyframes alert-pop {
+  0%   { scale: 0; }
+  25%  { scale: 1; }                          /* הופעה */
+  44%  { scale: var(--alert-pulse-size); }    /* פעימה ראשונה */
+  62%  { scale: 1; }
+  81%  { scale: var(--alert-pulse-size); }    /* פעימה שנייה */
+  100% { scale: 1; }
+}
+
+@keyframes alert-leave {
+  from { translate: 0 0; }
+  to   { translate: 0 calc(-100% - var(--alert-top)); }
 }

@@ -32,6 +32,11 @@
   <p class="hours-count title-font">0</p>
   <p class="hours-word">hours</p>
 
+  <!-- התראה שקופצת למעלה במרכז אחרי כמה גרירות (פריים 102:292). הטקסט נבחר ב-JavaScript -->
+  <div class="efficiency-alert title-font" hidden>
+    <p class="alert-text"></p>
+  </div>
+
 </div>
 
   <!-- התאמה למסך (משותף לכל העמודים) -->
@@ -124,11 +129,14 @@
     selectedTasks.forEach(function (task) {
       if (!categories.includes(task.category)) categories.push(task.category);
     });
-    const columnWidth = (FRAME_WIDTH - TOWERS_LEFT) / Math.max(categories.length, 1);
+    // המגדלים צמודים זה לזה מהצד הימני של המסך, בלי רווחים ביניהם.
+    // אם יש הרבה קטגוריות והם לא נכנסים, כל מגדל קצת יותר צר
+    const columnWidth = Math.min(TOWER_WIDTH, (FRAME_WIDTH - TOWERS_LEFT) / Math.max(categories.length, 1));
+    const towersStart = FRAME_WIDTH - columnWidth * categories.length;  // איפה מתחיל המגדל השמאלי
 
     // מרכז המגדל. towerNumber מתחיל מ-0 (המגדל הכי שמאלי)
     function towerCenter(towerNumber) {
-      return TOWERS_LEFT + columnWidth * (towerNumber + 0.5);
+      return towersStart + columnWidth * (towerNumber + 0.5);
     }
 
     function randomTower() {
@@ -243,9 +251,9 @@
 
     // מקום במגדל: קצת ימינה או שמאלה מהמרכז (כדי שהמגדל לא יהיה ישר לגמרי), ואיפה הוא ינחת שם
     function findSpot(tile, towerNumber, startTop) {
-      const wiggle = Math.max(0, (TOWER_WIDTH - tile.offsetWidth) / 2);
+      const wiggle = Math.max(0, (columnWidth - tile.offsetWidth) / 2);
       let left = towerCenter(towerNumber) - tile.offsetWidth / 2 + randomBetween(-wiggle, wiggle);
-      left = Math.max(TOWERS_LEFT, Math.min(left, FRAME_WIDTH - tile.offsetWidth));
+      left = Math.max(towersStart, Math.min(left, FRAME_WIDTH - tile.offsetWidth));
       return { left: left, top: findLandingTop(tile, left, startTop) };
     }
 
@@ -354,6 +362,52 @@
       showSummary();
     }
 
+    // ---------- התראות (פריים 102:292) ----------
+    // אחרי 5 אריחים לפחות שהונחו ליד השעות, כל כמה אריחים כאלה קופצת התראה למעלה במרכז
+    const ALERTS = [
+      "inefficiency alert!<br>that seems wrong",
+      "are you sure thats<br>the best planning?",
+      "that’s a lot to<br>fit in 60 minutes"
+    ];
+    const FIRST_ALERT_AT = 5;                         // ההתראה הראשונה באריח החמישי שתוכנן
+    const MIN_DRAGS_BETWEEN = 3, MAX_DRAGS_BETWEEN = 5; // ואז כל 3 עד 5 אריחים
+    const alertBox = document.querySelector(".efficiency-alert");
+    let dragCount = 0;   // כמה אריחים הונחו ליד השעות
+    let nextAlertAt = FIRST_ALERT_AT;
+    let lastAlert = -1;
+
+    function countPlannedTile() {
+      dragCount = dragCount + 1;
+      if (dragCount >= nextAlertAt && alertBox.hidden) {
+        showAlert();
+        nextAlertAt = dragCount + Math.round(randomBetween(MIN_DRAGS_BETWEEN, MAX_DRAGS_BETWEEN));
+      }
+    }
+
+    function showAlert() {
+      // בוחרים התראה אקראית, לא אותה אחת פעמיים ברצף
+      let alertNumber;
+      do {
+        alertNumber = Math.floor(Math.random() * ALERTS.length);
+      } while (alertNumber === lastAlert);
+      lastAlert = alertNumber;
+      alertBox.querySelector(".alert-text").innerHTML = ALERTS[alertNumber];
+
+      // מופיעה משום מקום, פועמת פעמיים, מחכה ויוצאת למעלה (האנימציה ב-CSS)
+      alertBox.hidden = false;
+      alertBox.classList.remove("show-alert");
+      void alertBox.offsetWidth;          // מאפס את האנימציה כדי שתתחיל מההתחלה
+      alertBox.classList.add("show-alert");
+    }
+
+    // כשההתראה סיימה לצאת מהמסך, מסתירים אותה
+    alertBox.addEventListener("animationend", function (event) {
+      if (event.animationName === "alert-leave") {
+        alertBox.classList.remove("show-alert");
+        alertBox.hidden = true;
+      }
+    });
+
     // ---------- גרירה ----------
     function makeDraggable(tile) {
       tile.addEventListener("pointerdown", function (event) {
@@ -396,6 +450,10 @@
 
         function dropTile() {
           tile.classList.remove("dragging");
+          // אריח שהונח ליד השעות (משמאל למגדלים) = תכנון, ונספר להתראות
+          if (tile.offsetLeft + tile.offsetWidth <= towersStart) {
+            countPlannedTile();
+          }
           tile.removeEventListener("pointermove", moveTile);
           tile.removeEventListener("pointerup", dropTile);
         }
