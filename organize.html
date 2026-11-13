@@ -308,24 +308,67 @@
     const KID_TASK_HOURS = 0.5;
     const KID_TASKS_PER_GRAB = 3;   // כמה תת-משימות נופלות בכל פעם שתופסים קובייה
 
+    // הרשימה שלך: התת-משימות האלה נופלות ראשונות
     const KID_TASKS = {
-      "laundry":      ["separate colors", "add detergent to the list", "hang laundry", "open hanging rack", "fold last weeks laundry",
-                       "check pockets", "move laundry to dryer", "hang delicates"],
-      "grocery-shop": ["make shopping list", "grab reusable bags", "meal plan for the week", "put groceries away", "find wallet"],
-      "school-work":  ["find references", "update Figma", "brainstorm", "do homework", "export final files",
-                       "read brief", "find inspiration", "moodboard", "sketch ideas"],
-      "pay-bills":    ["fight with bureaucracy", "get card info", "check balance", "save confirmation", "pay electricity"],
-      "workout":      ["change clothes", "go to gym", "renew membership", "charge Airpods", "fill water bottle", "pack gym bag"],
-      "cook":         ["prep box for tomorrow", "defrost chicken", "clean surface", "pack leftovers", "find recipe"],
-      "shower":       ["wash hair", "turn on water heater", "skin care routine", "shave", "floss"],
-      "clean":        ["take out garbage", "clean surface", "wash dishes", "sweep floor", "change bed sheets", "tidy room"]
+      "laundry": ["separate colors", "add detergent to the list", "hang laundry", "open hanging rack", "fold last weeks laundry",
+                  "check pockets", "move laundry to dryer", "hang delicates", "match socks"],
+      "grocery-shop": ["make shopping list", "grab reusable bags", "meal plan for the week", "put groceries away", "find wallet",
+                       "check expiration dates"],
+      "school-work": ["find references", "update Figma", "brainstorm", "do homework", "export final files",
+                      "read brief", "find inspiration", "moodboard", "sketch ideas", "make corrections"],
+      "pay-bills": ["fight with bureaucracy", "get card info", "check balance", "save confirmation", "pay electricity",
+                    "reset password", "check payment deadline"],
+      "workout": ["change clothes", "go to gym", "renew membership", "charge Airpods", "fill water bottle", "pack gym bag",
+                  "grab a towel"],
+      "cook": ["prep box for tomorrow", "defrost chicken", "clean surface", "pack leftovers", "find recipe", "preheat oven"],
+      "shower": ["wash hair", "turn on water heater", "skin care routine", "shave", "floss", "brush teeth"],
+      "clean": ["take out garbage", "clean surface", "wash dishes", "sweep floor", "change bed sheets", "tidy room",
+                "put cleaning supplies away"]
+    };
+
+    // עוד תת-משימות: נופלות רק אחרי שהרשימה הראשונה של הקטגוריה נגמרה, כדי שזה לא ייגמר מהר
+    const MORE_KID_TASKS = {
+      "laundry": ["sort whites", "check care labels", "clean lint filter", "buy fabric softener", "iron shirt",
+                  "treat stains", "empty laundry basket", "put clothes away", "wash towels", "fold towels",
+                  "steam dress", "find missing sock", "hang shirts", "run second load", "unload washing machine",
+                  "wipe washing machine seal", "sew loose button", "pick up dry cleaning", "air out jacket", "wash pillowcases"],
+      "grocery-shop": ["check the fridge", "check the pantry", "compare prices", "find coupons", "go to supermarket",
+                       "buy milk", "buy bread", "buy fruit", "buy vegetables", "restock toilet paper",
+                       "restock dish soap", "pay at register", "carry bags upstairs", "wash vegetables", "throw out old food",
+                       "organize the fridge", "write down missing items", "order delivery", "return bottles", "buy snacks"],
+      "school-work": ["answer emails", "update calendar", "send files to team", "print pages", "book a meeting",
+                      "prepare presentation", "check deadline", "name layers", "back up files", "write notes",
+                      "read article", "make a timeline", "ask for feedback", "rename files", "fix typos",
+                      "organize desktop", "charge laptop", "update portfolio", "submit assignment", "review comments"],
+      "pay-bills": ["pay water bill", "pay internet bill", "pay phone bill", "pay rent", "pay credit card",
+                    "find old receipt", "call customer service", "wait on hold", "download invoice", "scan documents",
+                    "update address", "cancel subscription", "check bank statement", "set up autopay", "file receipts",
+                    "fill out form", "print form", "sign form", "transfer money", "update budget"],
+      "workout": ["stretch", "warm up", "plan workout", "find headphones", "make playlist",
+                  "tie shoes", "eat a snack", "drink water", "book a class", "wash gym clothes",
+                  "foam roll", "cool down", "track workout", "find sports bra", "refill protein powder",
+                  "find gym card", "go for a run", "walk home", "take a shower", "rest"],
+      "cook": ["wash vegetables", "chop onion", "boil water", "set the table", "clear the table",
+               "load dishwasher", "check spices", "marinate chicken", "cook rice", "make salad",
+               "taste food", "clean stove", "pack lunch", "label containers", "empty dishwasher",
+               "sharpen knife", "wipe counters", "store leftovers", "make coffee", "buy missing ingredient"],
+      "shower": ["get a towel", "find clean clothes", "clean shower drain", "restock shampoo", "wash face",
+                 "put on lotion", "dry hair", "brush hair", "cut nails", "apply deodorant",
+                 "clean the mirror", "hang towel", "change towels", "restock toothpaste", "rinse shower walls",
+                 "take out contacts", "put on pajamas", "use conditioner", "scrub", "clean bathtub"],
+      "clean": ["vacuum carpet", "mop floor", "dust shelves", "clean bathroom", "scrub toilet",
+                "clean mirrors", "wipe windows", "empty recycling", "water plants", "clean fridge",
+                "make the bed", "organize closet", "clean microwave", "replace trash bag", "wipe door handles",
+                "clean sink", "fold blankets", "declutter desk", "wash floor mats", "buy cleaning supplies"]
     };
 
     // התת-משימות שעוד לא הופיעו, רק של המשימות שנבחרו
     const kidTasksLeft = {};
+    const moreKidTasksLeft = {};
     selectedTasks.forEach(function (task) {
       if (KID_TASKS[task.category]) {
         kidTasksLeft[task.category] = KID_TASKS[task.category].slice();  // עותק של הרשימה
+        moreKidTasksLeft[task.category] = MORE_KID_TASKS[task.category].slice();
       }
     });
 
@@ -345,6 +388,11 @@
       parents.slice(0, KID_TASKS_PER_GRAB).forEach(function (category, dropNumber) {
         const name = randomItem(kidTasksLeft[category]);
         kidTasksLeft[category].splice(kidTasksLeft[category].indexOf(name), 1);  // לא תופיע שוב
+        // נגמרה הרשימה הראשונה? ממשיכים עם הרשימה הנוספת
+        if (kidTasksLeft[category].length === 0 && moreKidTasksLeft[category].length > 0) {
+          kidTasksLeft[category] = moreKidTasksLeft[category];
+          moreKidTasksLeft[category] = [];
+        }
 
         // נופל מלמעלה, מחוץ למסך, אל מגדל אקראי.
         // הראשון מתחיל ליפול מיד כשתופסים אריח (בלי הפסקה), והשאר בזמן אקראי אחריו
