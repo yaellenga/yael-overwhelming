@@ -63,7 +63,8 @@
   </div>
 
   <!-- מעבר למסך הבא (פריים 98:109) -->
-  <button class="let-me-organize title-font" type="button">let me organize</button>
+  <!-- מוסתר עד שבוחרים לפחות קטגוריה אחת -->
+  <button class="let-me-organize title-font" type="button" hidden>let me organize</button>
 
 </div>
 
@@ -86,6 +87,9 @@
       });
       tasksCount.textContent = savedTasks.length;
       hoursCount.textContent = totalHours;   // למשל 0, 1.5, 4
+
+      // LET ME ORGANIZE מופיע רק כשיש לפחות משימה אחת שנבחרה
+      document.querySelector(".let-me-organize").hidden = savedTasks.length === 0;
     }
 
     // ---------- הסליידרים ----------

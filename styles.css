@@ -9,7 +9,7 @@
   /* צבעים */
   --color-background: #000000;
   --color-text: #ffffff;
-  --color-alert: #a80808;     /* אדום: מספר המשימות כשיש יותר מדי */
+  --color-alert: #ff0000;     /* אדום: מספר המשימות כשיש יותר מדי */
 
   /* הצבע של כל משימה (מדריך הצבעים, פריים 70:663). השמות כמו המשתנים בפיגמה.
      מסך ראשון: צבע המשימה בריחוף ובלחיצה. מסך שני: צבע הקובייה */
@@ -66,7 +66,7 @@
   --first-left: 61px;                  /* העמודה השמאלית */
   --day-title-top: 56px;
   --font-size-day-title: 30px;
-  --list-question-top: 154px;
+  --list-question-top: 174px;
   --font-size-list-question: 70px;
   --first-list-top: 285px;
   --font-size-label: 22.354px;
@@ -542,6 +542,10 @@ body {
   text-transform: uppercase;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.let-me-organize[hidden] {
+  display: none;
 }
 
 /* ריחוף על LET ME ORGANIZE: בירוק של grocery shop (מדריך הצבעים) */
