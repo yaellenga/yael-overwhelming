@@ -59,6 +59,7 @@
   --landing-squash: 0.97;      /* כמה האריח נמעך בנחיתה (1 = בכלל לא) */
   --breathe-time: 1s;          /* "נשימה" של מספר שגדל */
   --breathe-size: 1.2;         /* עד כמה הוא מתנפח (1.2 = פי 1.2) */
+  --breathe-size-alert: 1.5;   /* כשמספר המשימות אדום: מתחיל באותו גודל אבל מתנפח יותר */
   --summary-layer: 100000;     /* הסיכום תמיד מעל כל הקוביות */
 
   /* ---- המסך הראשון בעיצוב החדש (index.html, פריים 81:799) ---- */
@@ -311,6 +312,7 @@ body {
 /* יותר מדי משימות (25 ומעלה): המספר אדום */
 .tasks-count.too-many {
   color: var(--color-alert);
+  --breathe-size: var(--breathe-size-alert);   /* והנשימה שלו גדולה יותר */
 }
 
 /* "נשימה": מספר שגדל מתנפח וחוזר לגודלו במשך שנייה */
@@ -530,4 +532,11 @@ body {
 /* ריחוף על LET ME ORGANIZE: בירוק של grocery shop (מדריך הצבעים) */
 .let-me-organize:hover {
   color: var(--grocery-bubble);
+}
+
+/* הקישור "organize the day" במסך השני: נראה כמו הכותרת, ולחיצה מתחילה מחדש */
+.restart-link {
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
 }

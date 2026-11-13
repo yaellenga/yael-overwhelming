@@ -16,7 +16,8 @@
 <div class="screen">
 
   <!-- הכותרת (פריים 82:849) -->
-  <p class="day-title title-font">organize the day</p>
+  <!-- לחיצה מתחילה מחדש: חוזרים למסך הראשון -->
+  <a class="day-title restart-link title-font" href="index.html">organize the day</a>
 
   <!-- ציר השעות שנשארו היום (נוצר ב-JavaScript למטה) -->
   <ol class="timeline"></ol>
@@ -64,6 +65,12 @@
 
     showSummary();
 
+    // ---------- "organize the day": מתחילים מחדש ----------
+    // מוחקים את מה שנשמר מהמסך הקודם, והקישור מחזיר למסך הראשון
+    document.querySelector(".restart-link").addEventListener("click", function () {
+      sessionStorage.clear();
+    });
+
     // ---------- ציר השעות: רק השעות שנשארו היום ----------
     // מתחיל בשעה העגולה הבאה ונגמר ב-00:00. למשל ב-20:58: 21:00, 22:00, 23:00, 00:00
     const timeline = document.querySelector(".timeline");
@@ -94,6 +101,9 @@
     const TILE_MIN_WIDTH = 45,  TILE_MAX_WIDTH = 185;    // הגדלים של האריחים בעיצוב
     const TILE_MIN_HEIGHT = 53, TILE_MAX_HEIGHT = 120;   // עד גובה בינוני
     const TILE_WIDEST = 300;        // טקסט ארוך: האריח מתרחב עד כאן כדי לא להיות גבוה מדי
+    // הסיכום בצד ימין למעלה: מגדל לא עולה מעל התחתית שלו (המילה hours), כדי לא לכסות את המספרים
+    const SUMMARY_LEFT = 1289;      // 81.25%+60.5px, איפה שהמספרים מתחילים
+    const SUMMARY_BOTTOM = 292;     // התחתית של "hours" (263px + גובה השורה)
     const TILE_PADDING = 8;         // הרווח בצדדים של הטקסט (כמו --cube-padding ב-CSS)
     const FULL_FALL_TIME = 1600;    // כמה זמן לוקחת נפילה מלמעלה עד למטה (מילישניות). נפילה קצרה מהירה יותר
     const LANDING_TIME = 250;       // משך ה"מכה" בנחיתה (כמו --landing-time ב-CSS)
@@ -199,13 +209,22 @@
     // מכניס אריח למגדל.
     // fromTop = איפה הוא מתחיל (למעלה מחוץ למסך). בלי fromTop הוא פשוט מונח במקום (בהתחלה)
     function putInTower(tile, towerNumber, fromTop) {
-      // מקום אקראי קטן סביב מרכז המגדל, כדי שהמגדל לא יהיה ישר לגמרי
-      const wiggle = Math.max(0, (TOWER_WIDTH - tile.offsetWidth) / 2);
-      let left = towerCenter(towerNumber) - tile.offsetWidth / 2 + randomBetween(-wiggle, wiggle);
-      left = Math.max(TOWERS_LEFT, Math.min(left, FRAME_WIDTH - tile.offsetWidth));
-
       const startTop = fromTop === undefined ? -FRAME_HEIGHT : fromTop;
-      const landingTop = findLandingTop(tile, left, startTop);
+      let spot = findSpot(tile, towerNumber, startTop);
+
+      // אם האריח היה מכסה את הסיכום, הוא נופל למגדל אחר (בסדר אקראי).
+      // אם כל המגדלים מלאים עד שם, הוא נופל למקום הכי נמוך שנמצא
+      if (coversSummary(tile, spot)) {
+        const otherTowers = categories.map(function (category, number) { return number; });
+        otherTowers.sort(function () { return Math.random() - 0.5; });
+        for (const number of otherTowers) {
+          const otherSpot = findSpot(tile, number, startTop);
+          if (!coversSummary(tile, otherSpot)) { spot = otherSpot; break; }
+          if (otherSpot.top > spot.top) spot = otherSpot;
+        }
+      }
+      const left = spot.left;
+      const landingTop = spot.top;
 
       // שומרים איפה הוא ינחת, כדי שהאריחים הבאים יידעו לנחות עליו
       tile.dataset.left = left;
@@ -220,6 +239,19 @@
         tile.offsetTop;                       // גורם לדפדפן "לצייר" את נקודת ההתחלה לפני שזזים
         fallTo(tile, landingTop);
       }
+    }
+
+    // מקום במגדל: קצת ימינה או שמאלה מהמרכז (כדי שהמגדל לא יהיה ישר לגמרי), ואיפה הוא ינחת שם
+    function findSpot(tile, towerNumber, startTop) {
+      const wiggle = Math.max(0, (TOWER_WIDTH - tile.offsetWidth) / 2);
+      let left = towerCenter(towerNumber) - tile.offsetWidth / 2 + randomBetween(-wiggle, wiggle);
+      left = Math.max(TOWERS_LEFT, Math.min(left, FRAME_WIDTH - tile.offsetWidth));
+      return { left: left, top: findLandingTop(tile, left, startTop) };
+    }
+
+    // האם אריח במקום הזה יגיע לסיכום בצד ימין למעלה
+    function coversSummary(tile, spot) {
+      return spot.left + tile.offsetWidth > SUMMARY_LEFT && spot.top < SUMMARY_BOTTOM;
     }
 
     // כשמוציאים אריח מהמגדל, מה שהיה מעליו נופל למטה (מהנמוך לגבוה)
@@ -302,17 +334,19 @@
       parents.sort(function () { return Math.random() - 0.5; });
 
       // אם נשארו פחות משימות ראשיות עם תת-משימות, נופלות פחות
-      parents.slice(0, KID_TASKS_PER_GRAB).forEach(function (category) {
+      parents.slice(0, KID_TASKS_PER_GRAB).forEach(function (category, dropNumber) {
         const name = randomItem(kidTasksLeft[category]);
         kidTasksLeft[category].splice(kidTasksLeft[category].indexOf(name), 1);  // לא תופיע שוב
 
-        // נופל מלמעלה, מחוץ למסך, אל מגדל אקראי, בזמן אקראי
+        // נופל מלמעלה, מחוץ למסך, אל מגדל אקראי.
+        // הראשון מתחיל ליפול מיד כשתופסים אריח (בלי הפסקה), והשאר בזמן אקראי אחריו
         const tile = createTile(name, category);
+        const delay = dropNumber === 0 ? 0 : randomBetween(0, KID_DROP_SPREAD);
         tile.style.visibility = "hidden";
         setTimeout(function () {
           tile.style.visibility = "";
           putInTower(tile, randomTower(), -tile.offsetHeight);
-        }, randomBetween(0, KID_DROP_SPREAD));
+        }, delay);
 
         tasksCount = tasksCount + 1;
         totalHours = totalHours + KID_TASK_HOURS;
