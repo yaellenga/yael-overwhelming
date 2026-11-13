@@ -417,6 +417,7 @@
       "are you sure thats<br>the best planning?",
       "that’s a lot to<br>fit in 60 minutes"
     ];
+    const SIXTY_MINUTES_ALERT = 2;                    // "that's a lot to fit in 60 minutes" (המקום שלה ברשימה)
     const FIRST_ALERT_AT = 5;                         // ההתראה הראשונה באריח החמישי שתוכנן
     const MIN_DRAGS_BETWEEN = 3, MAX_DRAGS_BETWEEN = 5; // ואז כל 3 עד 5 אריחים
     const alertBox = document.querySelector(".efficiency-alert");
@@ -433,11 +434,13 @@
     }
 
     function showAlert() {
-      // בוחרים התראה אקראית, לא אותה אחת פעמיים ברצף
+      // בוחרים התראה אקראית, לא אותה אחת פעמיים ברצף.
+      // ההתראה הראשונה אף פעם לא "that's a lot to fit in 60 minutes"
+      const isFirstAlert = lastAlert === -1;
       let alertNumber;
       do {
         alertNumber = Math.floor(Math.random() * ALERTS.length);
-      } while (alertNumber === lastAlert);
+      } while (alertNumber === lastAlert || (isFirstAlert && alertNumber === SIXTY_MINUTES_ALERT));
       lastAlert = alertNumber;
       alertBox.querySelector(".alert-text").innerHTML = ALERTS[alertNumber];
 
