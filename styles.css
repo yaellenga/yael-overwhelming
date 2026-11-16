@@ -49,6 +49,10 @@
   --timeline-left: 61px;
   --timeline-top: 113px;
   --timeline-height: 795px;    /* מהשעה הראשונה עד 00:00 (בעיצוב 00:00 נמצא ב-908px). המרווח בין השעות משתנה */
+  --hour-line-width: 325px;    /* הקו שבין שעה לשעה (פריים 82:849) */
+  --hour-line-thickness: 1px;
+  --hour-text-height: 23px;    /* הגובה של טקסט השעה */
+  --hour-line-position: 0.5;   /* הקו בדיוק באמצע הרווח שבין שעה לשעה */
 
   /* האריחים של המשימות (פריים 82:849). הגודל והמיקום נקבעים ב-JavaScript */
   --cube-border-width: 0.778px;
@@ -260,6 +264,18 @@ body {
 /* לכל שעה אין גובה משלה, כך שהמרווחים נקבעים רק לפי כמה שעות יש */
 .timeline li {
   height: 0;
+  position: relative;
+}
+
+/* קו מתחת לכל שעה, חוץ מהאחרונה (00:00). המיקום שלו זז יחד עם המרווח בין השעות */
+.timeline li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  --hour-gap: calc(var(--timeline-height) / (var(--hour-count) - 1));   /* המרחק בין שעה לשעה */
+  top: calc(var(--hour-text-height) + (var(--hour-gap) - var(--hour-text-height)) * var(--hour-line-position));
+  width: var(--hour-line-width);
+  border-top: var(--hour-line-thickness) solid var(--color-label);
 }
 
 /* אריח של משימה: צבע לפי הקטגוריה, ישר (בלי הטיה), ואפשר לגרור אותו.

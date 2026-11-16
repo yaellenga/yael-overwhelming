@@ -92,6 +92,8 @@
         label.textContent = hour === 24 ? "00:00" : hour + ":00";
         timeline.appendChild(label);
       }
+      // כמה שעות יש: לפי זה ה-CSS מחשב איפה הקו שבין שעה לשעה
+      timeline.style.setProperty("--hour-count", timeline.children.length);
     }
 
     buildTimeline();
